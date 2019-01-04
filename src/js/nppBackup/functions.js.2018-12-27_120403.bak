@@ -1,0 +1,100 @@
+/**
+ * MWOT
+ * -
+ *
+ * Licensed under the GPLv2+ license.
+ */
+
+
+( function( window, document, $, plugin ) {
+
+			provider_sortable       = $('#provider-sortable')
+			provider_header         = '#provider-sortable h3'
+			button_add_provider	    = $('#add-provider')
+			button_close_provider   = '.close-provider'
+			add_tracking_url        = '.add_tracking_url'
+			button_update_provider  = '.update-provider'
+			gb_delete_provider  = '.delete-shipping-provider'
+			input_provider_name     = '.provider-name'
+			shipment_tracking_input = $('.gb-field')
+			button_tracking         = $('#gb-shipment-tracking button')
+
+    $(document).on('click', button_update_provider, function(e) {
+
+      // e.preventDefault();
+
+		  // var $item = $(this).closest('.list_item');
+		  // $(this).next().addClass('is-active');
+
+		  // $.ajax({
+		    // type: 'POST',
+		    // url: <?php echo admin_url( 'admin-ajax.php' ); ?>,
+		    // data: $item.find('input').serialize() + '&action=gb_update_provider',
+		    // success: function(data, textStatus, XMLHttpRequest) {
+		      // //alert(data);
+		      // $item.find('.is-active').removeClass('is-active');
+		    // }
+
+		  // });
+
+
+    });
+
+    $(document).on('click', gb_delete_provider, function(e) {
+		alert('ok');
+      e.preventDefault();
+		  var $item = $(this).closest('.list_item');
+		  $item.find('.spinner').addClass('is-active');
+
+		  $.ajax({
+		    type: 'POST',
+		    url: admin_url( 'admin-ajax.php' ),
+		    data: $item.find('input').serialize() + '&action=gb_delete_provider',
+		    success: function(data, textStatus, XMLHttpRequest) {
+		      $item.fadeOut(200, function() {
+		        $(this).remove();
+		      });
+		      $item.find('.spinner').removeClass('is-active');
+		    }
+		  });
+
+    });
+
+
+    button_tracking.on('click', function(e) {
+		alert('send tracking info to customer');
+
+      e.preventDefault();
+
+      // var $this = $(this);
+
+      // $this.closest('.control-actions').find('.spinner').addClass('active');
+
+      // $('.wrap > #message.notice').remove();
+
+      // $.ajax({
+        // type: 'POST',
+        // url: MWOT.ajaxurl,
+        // data: shipment_tracking_input.serialize() +'&mimo_shipment_tracking_nonce=' + $('#mimo_shipment_tracking_nonce').val() + '&action=mimo_send_tracking',
+        // success: function(data, textStatus, XMLHttpRequest) {
+
+          // $this.closest('.control-actions').find('.spinner').removeClass('active');
+
+          // if ( data.errors == true ){
+            // alert( data.msg );
+          // }else{
+            // $('select#order_status').val( MWOT.order_action ).trigger('change');
+          // }
+
+          // $( '.wp-header-end' ).after( '<div id="message" class="updated notice notice-success is-dismissible"><p>'+ MWOT.notice +'</p></div>' );
+
+          // $( '#gb-shipment-tracking .tracking-link' ).html( data.tracking_link );
+
+        // },
+
+      // });
+
+    });
+
+
+}( window, document, jQuery, window.gb ) );

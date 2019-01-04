@@ -1,0 +1,66 @@
+
+/*Additional*/
+.tabel-shipping-gb{
+margin:20px 0;	
+}
+
+.on-green{
+color:green;
+}
+
+.off-red{
+color:red;
+font-weight:bold;
+}
+
+.tabel-shipping-gb tr.titledesc th {
+    padding: 19px 12px;
+    border: 1px solid #ddd;
+    font-weight: bold;
+}
+.tabel-shipping-gb td {
+    padding: 10px 12px;
+    border-right: 1px solid #ddd;
+}
+
+.gb-shippment-block .action-button:hover {
+    border-color: #008ec2;
+    background: #00a0d2;
+    color: #fff;
+}
+
+
+
+.gb-shippment-block .action-button
+{
+   padding: 5px 22px;
+    position: relative;
+    text-decoration: none;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    background: #f7f7f7;
+    text-shadow: none;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: normal;
+    color: #0073aa;
+    cursor: pointer;
+    outline: 0;
+}
+
+.wrap .tabel-shipping-gb .spinner {   
+    float: none;
+	height: 26px;    
+}
+table.form-table-gb-shipping-tracking {
+    text-align: left;
+}
+table.form-table-gb-shipping-tracking {
+    padding: 20px 0px;
+}
+table.form-table-gb-shipping-tracking td {
+    padding: 10px 0;
+}
+
+
+

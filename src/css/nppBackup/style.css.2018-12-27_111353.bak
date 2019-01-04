@@ -1,0 +1,14 @@
+
+/*Additional*/
+.tabel-shipping-gb{
+margin:20px 0;	
+}
+
+.on-green{
+color:green;
+}
+
+.off-red{
+color:red;
+}
+

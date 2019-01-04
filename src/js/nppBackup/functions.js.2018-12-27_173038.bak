@@ -1,0 +1,84 @@
+/**
+ * MWOT
+ * -
+ *
+ * Licensed under the GPLv2+ license.
+ */
+
+( function( window, document, $ ) {
+
+			var provider_sortable       = $('#provider-sortable');
+			provider_header         = '#provider-sortable h3';
+			button_add_provider	    = $('#add-provider');
+			button_close_provider   = '.close-provider';
+			add_tracking_url        = '.add_tracking_url';
+			button_update_provider  = '.update-provider';
+			delete_shipping_provider  = '.delete_shipping_provider';
+			input_provider_name     = '.provider-name';
+			shipment_tracking_input = $('.gb-field');
+			button_tracking         = $('#gb-shipment-tracking button');
+			add_shipping_provider= $('.add-shipping-provider');
+			
+			
+	$(document).on('click', add_shipping_provider, function(e) {
+		alert('ok');
+		$.ajax({
+		type: 'POST',
+		url: gb.ajaxurl,
+		data: 'action=add_shipping_provider',
+		success: function(data, textStatus, XMLHttpRequest) {
+		  //alert(data);
+		  $item.find('.is-active').removeClass('is-active');
+		}		
+		});
+	});	
+	
+
+
+
+    $(document).on('click', button_update_provider, function(e) {
+
+      // e.preventDefault();
+
+		  // var $item = $(this).closest('.list_item');
+		  // $(this).next().addClass('is-active');
+
+		  // $.ajax({
+		    // type: 'POST',
+		    // url: gb.ajaxurl,
+		    // data: $item.find('input').serialize() + '&action=gb_update_provider',
+		    // success: function(data, textStatus, XMLHttpRequest) {
+		      // //alert(data);
+		      // $item.find('.is-active').removeClass('is-active');
+		    // }
+
+		  // });
+
+
+    });
+
+    $(document).on('click', delete_shipping_provider, function(e) {
+      e.preventDefault();	
+		var parent_td = $(this).parent('td');
+		var parent_tr = parent_td.parent('tr');
+		var input_value = parent_td.find("input");
+		parent_td.find('.spinner').addClass('is-active');
+		  $.ajax({
+			type: 'POST',
+			url: gb.ajaxurl,
+			data: 'key='+input_value.val()+ '&action=gb_delete_provider',
+			success: function(data, textStatus, XMLHttpRequest) {						     
+				parent_tr.fadeOut('slow');	
+				parent_td.find('.spinner').removeClass('is-active');				
+			}
+		  });
+
+    });
+
+
+    button_add_provider.click(function (e) {
+
+    });
+
+
+}( window, document, jQuery) );

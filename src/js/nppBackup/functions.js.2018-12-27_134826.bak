@@ -1,0 +1,66 @@
+/**
+ * MWOT
+ * -
+ *
+ * Licensed under the GPLv2+ license.
+ */
+
+( function( window, document, $ ) {
+
+	var input_date_shipped      = $('#mimo_date_shipped')
+			provider_sortable       = $('#provider-sortable')
+			provider_header         = '#provider-sortable h3'
+			button_add_provider	    = $('#add-provider')
+			button_close_provider   = '.close-provider'
+			add_tracking_url        = '.add_tracking_url'
+			button_update_provider  = '.update-provider'
+			delete_shipping_provider  = '.delete_shipping_provider'
+			input_provider_name     = '.provider-name'
+			shipment_tracking_input = $('.mimo-field')
+			button_tracking         = $('#mimo-shipment-tracking button')
+
+
+
+    $(document).on('click', button_update_provider, function(e) {
+
+      // e.preventDefault();
+
+		  // var $item = $(this).closest('.list_item');
+		  // $(this).next().addClass('is-active');
+
+		  // $.ajax({
+		    // type: 'POST',
+		    // url: gb.ajaxurl,
+		    // data: $item.find('input').serialize() + '&action=gb_update_provider',
+		    // success: function(data, textStatus, XMLHttpRequest) {
+		      // //alert(data);
+		      // $item.find('.is-active').removeClass('is-active');
+		    // }
+
+		  // });
+
+
+    });
+
+    $(document).on('click', delete_shipping_provider, function(e) {
+      e.preventDefault();
+			var parent_td = $(this).parent('td')
+			var input_value = $(this).parent('td').find("input");
+		  $.ajax({
+		    type: 'POST',
+		    url: gb.ajaxurl,
+		    data: 'key='+input_value.val()+ '&action=gb_delete_provider',
+		    success: function(data, textStatus, XMLHttpRequest) {						     
+		        $(this).parent('td').fadeOut('slow');		      
+		    }
+		  });
+
+    });
+
+
+    button_add_provider.click(function (e) {
+
+    });
+
+
+}( window, document, jQuery) );
