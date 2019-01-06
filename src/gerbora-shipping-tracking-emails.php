@@ -1,12 +1,12 @@
 <?php
 /*
-* Plugin Name: Woocommeroce Order Tracking Plugin
+* Plugin Name: Woocommeroce: Email order shipment link
 *
 * Description: Woocommerce plugin to send emails with shipping tracking information.
 *
-* Author: Brst developer  
+* Author: Trafikito.com - get free notifications when your server is going out of resources. Install now at https://trafikito.com
 *
-* Text Domain: gb
+* Text Domain: trafikito_shipment_link_
 */
 
 
@@ -15,19 +15,19 @@ if (!defined('ABSPATH')) {
 }
 
 
-if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
+if (!class_exists('Trafikito_Woocomerce_order_shipping_tracking_email')) {
 
   /**
-   * gb_Woocommerce_Order_Tracking main class.
+   * trafikito_shipment_link_Woocommerce_Order_Tracking main class.
    */
-  class Gerbora_Shipping_Tracking_Emails
+  class Trafikito_Woocomerce_order_shipping_tracking_email
   {
     /**
      * Plugin version.
      *
      * @var string
      */
-    const VERSION = '1.0';
+    const VERSION = '1.1';
     /**
      * Instance of this class.
      *
@@ -70,7 +70,7 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
      */
     public function __construct()
     {
-      $this->providers = get_option('gb_providers');
+      $this->providers = get_option('trafikito_shipment_link_providers');
       $this->basename = dirname(plugin_basename(__FILE__));
       $this->url = plugin_dir_url(__FILE__);
       $this->path = plugin_dir_path(__FILE__);
@@ -133,7 +133,7 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
         'register_script'
       ));
 
-      add_action('wp_ajax_gb_send_tracking', array(
+      add_action('wp_ajax_trafikito_shipment_link_send_tracking', array(
         $this,
         'send_tracking'
       ));
@@ -145,22 +145,22 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
         $this,
         'validate_provider_name'
       ));
-      add_action('wp_ajax_gb_update_provider', array(
+      add_action('wp_ajax_trafikito_shipment_link_update_provider', array(
         $this,
         'update_provider'
       ));
-      add_action('wp_ajax_gb_delete_provider', array(
+      add_action('wp_ajax_trafikito_shipment_link_delete_provider', array(
         $this,
         'delete_shipping_provider'
       ));
 
 
-      add_action('wp_ajax_gb_get_info_by_id', array(
+      add_action('wp_ajax_trafikito_shipment_link_get_info_by_id', array(
         $this,
         'get_info_by_id'
       ));
 
-      add_action('wp_ajax_gb_update_order_provider', array(
+      add_action('wp_ajax_trafikito_shipment_link_update_order_provider', array(
         $this,
         'update_order_provider'
       ));
@@ -189,7 +189,7 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
     public function plugin_activate()
     {
       if (empty($this->providers)):
-        delete_option('gb_providers');
+        delete_option('trafikito_shipment_link_providers');
 
         $list = array(
           array(
@@ -212,7 +212,7 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
           )
         );
 
-        add_option('gb_providers', $list);
+        add_option('trafikito_shipment_link_providers', $list);
       endif;
     }
 
@@ -237,7 +237,7 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
       add_meta_box(
         'gb-shipment-tracking',
         __('Shipping Tracking', 'gb'),
-        array($this, 'gb_meta_boxes_callback'),
+        array($this, 'trafikito_shipment_link_meta_boxes_callback'),
         'shop_order',
         'side',
         'high'
@@ -270,36 +270,36 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
 
       if (!current_user_can('edit_post', $post_id)) return;
 
-      if (isset($_POST['gb_tracking_provider_id']))
-        update_post_meta($post_id, 'gb_tracking_provider_id', sanitize_text_field($_POST['gb_tracking_provider_id']));
+      if (isset($_POST['trafikito_shipment_link_tracking_provider_id']))
+        update_post_meta($post_id, 'trafikito_shipment_link_tracking_provider_id', sanitize_text_field($_POST['trafikito_shipment_link_tracking_provider_id']));
 
-      if (isset($_POST['gb_tracking_number']))
-        update_post_meta($post_id, 'gb_tracking_number', sanitize_text_field($_POST['gb_tracking_number']));
+      if (isset($_POST['trafikito_shipment_link_tracking_number']))
+        update_post_meta($post_id, 'trafikito_shipment_link_tracking_number', sanitize_text_field($_POST['trafikito_shipment_link_tracking_number']));
 
-      if (isset($_POST['gb_date_shipped']))
-        update_post_meta($post_id, 'gb_date_shipped', sanitize_text_field($_POST['gb_date_shipped']));
+      if (isset($_POST['trafikito_shipment_link_date_shipped']))
+        update_post_meta($post_id, 'trafikito_shipment_link_date_shipped', sanitize_text_field($_POST['trafikito_shipment_link_date_shipped']));
 
-      if (isset($_POST['gb_ship_date']))
-        update_post_meta($post_id, 'gb_ship_date', sanitize_text_field($_POST['gb_ship_date']));
+      if (isset($_POST['trafikito_shipment_link_ship_date']))
+        update_post_meta($post_id, 'trafikito_shipment_link_ship_date', sanitize_text_field($_POST['trafikito_shipment_link_ship_date']));
 
-      if (isset($_POST['gb_ship_day']))
-        update_post_meta($post_id, 'gb_ship_day', sanitize_text_field($_POST['gb_ship_day']));
+      if (isset($_POST['trafikito_shipment_link_ship_day']))
+        update_post_meta($post_id, 'trafikito_shipment_link_ship_day', sanitize_text_field($_POST['trafikito_shipment_link_ship_day']));
 
-      $gb_tracking_provider_id = $_POST['gb_tracking_provider_id'];
-      $gb_tracking_number = $_POST['gb_tracking_number'];
-      $gb_ship_date = $_POST['gb_ship_date'];
-      $gb_ship_day = $_POST['gb_ship_day'];
+      $trafikito_shipment_link_tracking_provider_id = $_POST['trafikito_shipment_link_tracking_provider_id'];
+      $trafikito_shipment_link_tracking_number = $_POST['trafikito_shipment_link_tracking_number'];
+      $trafikito_shipment_link_ship_date = $_POST['trafikito_shipment_link_ship_date'];
+      $trafikito_shipment_link_ship_day = $_POST['trafikito_shipment_link_ship_day'];
 
 
-      if ('' == $gb_tracking_provider_id) {
+      if ('' == $trafikito_shipment_link_tracking_provider_id) {
         $errors = true;
         $return['msg'] .= __('Please select a provider', 'gb') . "\n";
       }
-      if ('' == $gb_tracking_number) {
+      if ('' == $trafikito_shipment_link_tracking_number) {
         $errors = true;
         $return['msg'] .= __('Please enter a tracking number', 'gb') . "\n";
       }
-      if ('' == $gb_ship_date || '' == $gb_ship_day) {
+      if ('' == $trafikito_shipment_link_ship_date || '' == $trafikito_shipment_link_ship_day) {
         $errors = true;
         $return['msg'] .= __('Please enter a date', 'gb') . "\n";
       }
@@ -312,17 +312,17 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
 
         $customer_email = $order_data['billing']['email'];
 
-        $key = array_search($gb_tracking_provider_id, array_column($this->providers, 'id'));
+        $key = array_search($trafikito_shipment_link_tracking_provider_id, array_column($this->providers, 'id'));
         $pr_name = $this->providers[$key]['provider'];
-        $pr_id = get_post_meta($post_id, 'gb_tracking_provider_id', true);
-        $tracking_number = get_post_meta($post_id, 'gb_tracking_number', true);
-        $date_shipped = get_post_meta($post_id, 'gb_date_shipped', true);
-        $gb_ship_date = get_post_meta($post_id, 'gb_ship_date', true);
-        $gb_ship_day = ucfirst(str_replace('_', ' ', get_post_meta($post_id, 'gb_ship_day', true)));
+        $pr_id = get_post_meta($post_id, 'trafikito_shipment_link_tracking_provider_id', true);
+        $tracking_number = get_post_meta($post_id, 'trafikito_shipment_link_tracking_number', true);
+        $date_shipped = get_post_meta($post_id, 'trafikito_shipment_link_date_shipped', true);
+        $trafikito_shipment_link_ship_date = get_post_meta($post_id, 'trafikito_shipment_link_ship_date', true);
+        $trafikito_shipment_link_ship_day = ucfirst(str_replace('_', ' ', get_post_meta($post_id, 'trafikito_shipment_link_ship_day', true)));
         $tracking_link = $this->email_tracking_link($post_id);
         $formatted_track = '<a href="' . $tracking_link . '">' . $tracking_number . '</a>';
 
-        $email_vars = array($pr_name, $formatted_track, $date_shipped, $gb_ship_date . ' ' . $gb_ship_day);
+        $email_vars = array($pr_name, $formatted_track, $date_shipped, $trafikito_shipment_link_ship_date . ' ' . $trafikito_shipment_link_ship_day);
 
         // $order->update_status( $this->order_status );
         $body = 'Hi ' . $pr_name;
@@ -369,22 +369,24 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
      *
      * @param post $post The post object
      */
-    public function gb_meta_boxes_callback($post)
+    public function trafikito_shipment_link_meta_boxes_callback($post)
     {
 
-      wp_nonce_field('gb_shipment_tracking_data', 'gb_shipment_tracking_nonce');
+      wp_nonce_field('trafikito_shipment_link_shipment_tracking_data', 'trafikito_shipment_link_shipment_tracking_nonce');
 
-      $provider_id = get_post_meta($post->ID, 'gb_tracking_provider_id', true);
-      $tracking_number = get_post_meta($post->ID, 'gb_tracking_number', true);
-      $date_shipped = get_post_meta($post->ID, 'gb_date_shipped', true);
-      $gb_ship_date = get_post_meta($post->ID, 'gb_ship_date', true);
-      $gb_ship_day = get_post_meta($post->ID, 'gb_ship_day', true); ?>
+      $provider_id = get_post_meta($post->ID, 'trafikito_shipment_link_tracking_provider_id', true);
+      $tracking_number = get_post_meta($post->ID, 'trafikito_shipment_link_tracking_number', true);
+      $date_shipped = get_post_meta($post->ID, 'trafikito_shipment_link_date_shipped', true);
+      $trafikito_shipment_link_ship_date = get_post_meta($post->ID, 'trafikito_shipment_link_ship_date', true);
+      $trafikito_shipment_link_ship_day = get_post_meta($post->ID, 'trafikito_shipment_link_ship_day', true); ?>
 
         <p>
-            <label for="gb_tracking_provider_id" class="input-text"><strong><?php _e('Provider', 'gb') ?>
+            <label for="trafikito_shipment_link_tracking_provider_id"
+                   class="input-text"><strong><?php _e('Provider', 'gb') ?>
                     :</strong></label>
             <br>
-            <select name="gb_tracking_provider_id" id="gb_tracking_provider_id" class="gb-field">
+            <select name="trafikito_shipment_link_tracking_provider_id"
+                    id="trafikito_shipment_link_tracking_provider_id" class="gb-field">
               <?php if (!empty($this->providers)) :
                 foreach ($this->providers as $key => $provider) : ?>
                   <?php if ($provider['status'] != 'off'): ?>
@@ -395,46 +397,48 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
             </select>
         </p>
 
-        <p class="gb_hidden_fields">
-            <label for="gb_tracking_number"><strong><?php _e('Tracking number', 'gb') ?> :</strong></label>
-            <input type="text" class="gb-field" name="gb_tracking_number" id="gb_tracking_number"
+        <p class="trafikito_shipment_link_hidden_fields">
+            <label for="trafikito_shipment_link_tracking_number"><strong><?php _e('Tracking number', 'gb') ?> :</strong></label>
+            <input type="text" class="gb-field" name="trafikito_shipment_link_tracking_number"
+                   id="trafikito_shipment_link_tracking_number"
                    value="<?php if (isset($tracking_number)) echo $tracking_number; ?>"/>
         </p>
         <p class="tracking-link"><?php echo $this->tracking_link($post->ID); ?></p>
 
-        <p class="gb_hidden_fields">
-            <input type="text" class="gb-field" autocomplete="off" placeholder="When shipped" name="gb_date_shipped"
-                   id="gb_date_shipped"
+        <p class="trafikito_shipment_link_hidden_fields">
+            <input type="text" class="gb-field" autocomplete="off" placeholder="When shipped"
+                   name="trafikito_shipment_link_date_shipped"
+                   id="trafikito_shipment_link_date_shipped"
                    value="<?php echo($date_shipped ? $date_shipped : '') ?>"/>
         </p>
 
         <p>
 
-        <p class="gb_hidden_fields">
-            <label for="gb_est_delivery"><strong><?php _e('Estimated Delivery', 'gb') ?> :</strong></label><br>
-            <select name="gb_ship_date" id="gb_ship_date">
+        <p class="trafikito_shipment_link_hidden_fields">
+            <label for="trafikito_shipment_link_est_delivery"><strong><?php _e('Estimated Delivery', 'gb') ?> :</strong></label><br>
+            <select name="trafikito_shipment_link_ship_date" id="trafikito_shipment_link_ship_date">
               <?php for ($i = 1; $i <= 30; $i++): ?>
-                  <option value="<?php echo $i; ?>" <?php selected($gb_ship_date, $i); ?>>
+                  <option value="<?php echo $i; ?>" <?php selected($trafikito_shipment_link_ship_date, $i); ?>>
                     <?php echo $i; ?>
                   </option>
               <?php endfor; ?>
             </select>
-            <select name="gb_ship_day" id="calender-work-days">
-                <option value="calendar_days" <?php selected($gb_ship_day, 'calendar_days'); ?>>
+            <select name="trafikito_shipment_link_ship_day" id="calender-work-days">
+                <option value="calendar_days" <?php selected($trafikito_shipment_link_ship_day, 'calendar_days'); ?>>
                   <?php _e('Calendar days', 'gb'); ?>
                 </option>
-                <option value="workdays" <?php selected($gb_ship_day, 'workdays'); ?>>
+                <option value="workdays" <?php selected($trafikito_shipment_link_ship_day, 'workdays'); ?>>
                   <?php _e('Workdays', 'gb'); ?>
                 </option>
             </select>
         </p>
 
-        <input type="hidden" class="gb-field" name="gb_order_ID" value="<?php echo $post->ID ?>"/>
+        <input type="hidden" class="gb-field" name="trafikito_shipment_link_order_ID" value="<?php echo $post->ID ?>"/>
 
         <div class="control-actions ">
             <a class="metabox-shipping-track"
                href="<?php echo $this->manage_providers; ?>"><?php _e('Settings', 'gb') ?></a>
-            <div class="alignright gb_hidden_fields">
+            <div class="alignright trafikito_shipment_link_hidden_fields">
                 <button class="button button-primary right " id="save_send">
                   <?php echo($this->validate($post->ID) ? __('Save', 'gb') : __('Save and Send', 'gb')); ?>
                 </button>
@@ -450,8 +454,8 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
     {
 
       if (!$this->validate($order_id)) return false;
-      $tracking_provider_id = get_post_meta($order_id, 'gb_tracking_provider_id', true);
-      $tracking_number = get_post_meta($order_id, 'gb_tracking_number', true);
+      $tracking_provider_id = get_post_meta($order_id, 'trafikito_shipment_link_tracking_provider_id', true);
+      $tracking_number = get_post_meta($order_id, 'trafikito_shipment_link_tracking_number', true);
       $key = array_search($tracking_provider_id, array_column($this->providers, 'id'));
       $tracking_url = str_replace("{{TRACKING_NUMBER}}", $tracking_number, $this->providers[$key]['tracking_url']);
       return $tracking_url;
@@ -463,8 +467,8 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
 
       if (!$this->validate($order_id)) return false;
 
-      $tracking_provider_id = get_post_meta($order_id, 'gb_tracking_provider_id', true);
-      $tracking_number = get_post_meta($order_id, 'gb_tracking_number', true);
+      $tracking_provider_id = get_post_meta($order_id, 'trafikito_shipment_link_tracking_provider_id', true);
+      $tracking_number = get_post_meta($order_id, 'trafikito_shipment_link_tracking_number', true);
       $key = array_search($tracking_provider_id, array_column($this->providers, 'id'));
       $tracking_url = str_replace("{{TRACKING_NUMBER}}", $tracking_number, $this->providers[$key]['tracking_url']);
 
@@ -481,9 +485,9 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
     public function validate($order_id)
     {
 
-      if (get_post_meta($order_id, 'gb_tracking_provider_id', true) == ''
-        || get_post_meta($order_id, 'gb_tracking_number', true) == ''
-        || get_post_meta($order_id, 'gb_date_shipped', true) == '') {
+      if (get_post_meta($order_id, 'trafikito_shipment_link_tracking_provider_id', true) == ''
+        || get_post_meta($order_id, 'trafikito_shipment_link_tracking_number', true) == ''
+        || get_post_meta($order_id, 'trafikito_shipment_link_date_shipped', true) == '') {
         return false;
       } else {
         return true;
@@ -586,7 +590,7 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
       $this->providers[$key]['tracking_number'] = '';
       $this->providers[$key]['new_order_status'] = $new_order_status;
 
-      update_option('gb_providers', $this->providers);
+      update_option('trafikito_shipment_link_providers', $this->providers);
       die;
     }
 
@@ -601,7 +605,7 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
       $key = sanitize_text_field($_POST["key"]);
       unset($this->providers[$key]);
 
-      update_option('gb_providers', array_values($this->providers));
+      update_option('trafikito_shipment_link_providers', array_values($this->providers));
       die();
     }
 
@@ -628,7 +632,7 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
       $this->providers[$key]['estimated_delivery'] = $estimated_delivery;
       $this->providers[$key]['new_order_status'] = $new_order_status;
 
-      update_option('gb_providers', $this->providers);
+      update_option('trafikito_shipment_link_providers', $this->providers);
       die();
     }
 
@@ -1104,5 +1108,5 @@ if (!class_exists('Gerbora_Shipping_Tracking_Emails')) {
     }
   }
 
-  Gerbora_Shipping_Tracking_Emails::get_instance();
+  Trafikito_Woocomerce_order_shipping_tracking_email::get_instance();
 }

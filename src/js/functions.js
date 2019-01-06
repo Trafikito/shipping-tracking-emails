@@ -5,55 +5,44 @@
  */
 (function (window, document, $) {
 
-  let provider_sortable = $('#provider-sortable');
-  let input_date_shipped = $('#gb_date_shipped');
-  let gb_tracking_provider_id = '#gb_tracking_provider_id';
-  let button_tracking = $('#gb-shipment-tracking button');
+  let input_date_shipped = $('#trafikito_shipment_link_date_shipped');
+  let trafikito_shipment_link_tracking_provider_id = '#trafikito_shipment_link_tracking_provider_id';
   let status_toggle = 'input#status-toggle';
   let shipping_provider = '#shipping-provider';
   let shipping_tracking_url = '#shipping-tracking-url';
   let delete_false = '.delete-false';
-  let calender_work_days = '#calender-work-days';
-  let new_order_status = '#new-order-status';
   let update_provider = '.update-shipping-provider';
   let delete_shipping_provider = '.delete-shipping-provider';
   let action_delete = '.action-delete';
-  let input_provider_name = '.provider-name';
-  let shipment_tracking_input = $('.gb-field');
   let add_shipping_provider = '.add-shipping-provider';
-  let save_send = '.control-actions button';
 
-  $(document).on('change', gb_tracking_provider_id, function (e) {
-    let pr_id = $('#gb_tracking_provider_id').val();
+  $(document).on('change', trafikito_shipment_link_tracking_provider_id, function (e) {
+    let pr_id = $('#trafikito_shipment_link_tracking_provider_id').val();
     $.ajax({
       type: 'POST',
       url: gb.ajaxurl,
-      data: 'pr_id=' + pr_id + '&action=gb_get_info_by_id',
+      data: 'pr_id=' + pr_id + '&action=trafikito_shipment_link_get_info_by_id',
       success: function (data) {
         if (data['date'] !== '') {
-          $('#gb_ship_date').val(data['date']);
+          $('#trafikito_shipment_link_ship_date').val(data['date']);
           $('#calender-work-days').val(data['day']);
         }
       },
     });
-    $('#gb_tracking_number').val('');
-    $('#gb_date_shipped').val('');
-
-
-    $('#side-sortables p, #side-sortables div').removeClass('gb_hidden_fields');
+    $('#trafikito_shipment_link_tracking_number').val('');
+    $('#trafikito_shipment_link_date_shipped').val('');
+    $('#side-sortables p, #side-sortables div').removeClass('trafikito_shipment_link_hidden_fields');
   });
 
-  if ($('#gb_tracking_number').val() !== '') {
-    $('#side-sortables p, #side-sortables div').removeClass('gb_hidden_fields');
+  if ($('#trafikito_shipment_link_tracking_number').val() !== '') {
+    $('#side-sortables p, #side-sortables div').removeClass('trafikito_shipment_link_hidden_fields');
   }
-
 
   $(document).on('focusin', input_date_shipped, function (e) {
     input_date_shipped.datepicker({
       showButtonPanel: true,
     });
   });
-
 
   $(document).on('focusout', shipping_provider, function (e) {
     let element = $(shipping_provider);
@@ -62,7 +51,6 @@
       $('.empty-provider').fadeIn('slow');
     }
   });
-
 
   $(document).on('click', update_provider, function (e) {
     e.preventDefault();
@@ -79,7 +67,7 @@
       $.ajax({
         type: 'POST',
         url: gb.ajaxurl,
-        data: data + 'action=gb_update_provider',
+        data: data + 'action=trafikito_shipment_link_update_provider',
         success: function (data) {
           $('.update-success').fadeIn();
         },
@@ -191,7 +179,7 @@
     $.ajax({
       type: 'POST',
       url: gb.ajaxurl,
-      data: 'key=' + input_value.val() + '&action=gb_delete_provider',
+      data: 'key=' + input_value.val() + '&action=trafikito_shipment_link_delete_provider',
       success: function (data) {
         if (window.location.href.indexOf('&section=edit_provider') > 0) {
           $('.delete-success').show();
