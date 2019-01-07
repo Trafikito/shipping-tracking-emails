@@ -51,7 +51,7 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       $this->manage_providers = admin_url('admin.php?page=wc-settings&tab=' . self::BASE_FULL);
 
       add_action('plugins_loaded', array($this, 'add_hooks'));
-      load_plugin_textdomain('gb', false, $this->basename . '/languages/');
+      load_plugin_textdomain(self::BASE_SHORT, false, $this->basename . '/languages/');
       register_activation_hook(__FILE__, array($this, 'plugin_activate'));
       register_deactivation_hook(__FILE__, array($this, 'plugin_deactivate'));
       register_uninstall_hook(__FILE__, array($this, 'plugin_uninstall'));
@@ -72,13 +72,13 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       add_action('add_meta_boxes', array($this, 'adding_meta_boxes'), 10, 2);
       add_action('save_post', array($this, 'save_meta_boxes'));
       add_action('admin_enqueue_scripts', array($this, 'register_script'));
-      add_action('wp_ajax_trafikito_shipment_link_send_tracking', array($this, 'send_tracking'));
-      add_action('wp_ajax_add_shipping_provider', array($this, 'add_shipping_provider'));
-      add_action('wp_ajax_validate_provider_name', array($this, 'validate_provider_name'));
-      add_action('wp_ajax_trafikito_shipment_link_update_provider', array($this, 'update_provider'));
-      add_action('wp_ajax_trafikito_shipment_link_delete_provider', array($this, 'delete_shipping_provider'));
-      add_action('wp_ajax_trafikito_shipment_link_get_info_by_id', array($this, 'get_info_by_id'));
-      add_action('wp_ajax_trafikito_shipment_link_update_order_provider', array($this, 'update_order_provider'));
+      add_action('wp_ajax_' . self::BASE_FULL . '_send_tracking', array($this, 'send_tracking'));
+      add_action('wp_ajax_' . self::BASE_FULL . '_add_provider', array($this, 'add_provider'));
+      add_action('wp_ajax_' . self::BASE_FULL . '_validate_provider_name', array($this, 'validate_provider_name'));
+      add_action('wp_ajax_' . self::BASE_FULL . '_update_provider', array($this, 'update_provider'));
+      add_action('wp_ajax_' . self::BASE_FULL . '_delete_provider', array($this, 'delete_provider'));
+      add_action('wp_ajax_' . self::BASE_FULL . '_get_info_by_id', array($this, 'get_info_by_id'));
+      add_action('wp_ajax_' . self::BASE_FULL . '_update_order_provider', array($this, 'update_order_provider'));
 
       add_action('woocommerce_settings_tabs_' . self::BASE_FULL, array($this, 'settings_tab'));
       add_filter('woocommerce_settings_tabs_array', array($this, 'add_settings_tab'), 25);
@@ -100,7 +100,8 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
             'provider' => 'DHL Express',
             'status' => 'on',
             'tracking_url' => 'http://www.dhl.com/en/express/tracking.html?AWB={{TRACKING_NUMBER}}&brand=DHL',
-            'estimated_delivery' => '5 calendar_days',
+            'estimated_delivery_days' => 5,
+            'estimated_delivery_days_type' => 'workdays',
             'tracking_number' => '',
             'new_order_status' => 'completed'
           ),
@@ -121,23 +122,22 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
     {
     }
 
-    // PLUGIN install-uninstall end
-
-    // AJAX
-
-    public function get_info_by_id()
+    public function register_script()
     {
-      $pr_id = $_POST['pr_id'];
-      $key = array_search($pr_id, array_column($this->providers, 'id'));
-      $est_delivery = $this->providers[$key]['estimated_delivery'];
-      $est_ex = explode(' ', $est_delivery);
-      $return['date'] = $est_ex[0];
-      $return['day'] = $est_ex[1];
-      wp_send_json($return);
-      die();
+      wp_enqueue_script('jquery-ui-datepicker');
+      wp_enqueue_script(self::BASE_SHORT . '-functions', $this->url . 'js/functions.js', array('jquery'), false, true);
+      wp_enqueue_style(self::BASE_SHORT . '-style', $this->url . 'css/style.css', array());
+      wp_localize_script(self::BASE_SHORT . '-functions', self::BASE_SHORT,
+        array('ajaxurl' => admin_url('admin-ajax.php'),
+          'form_validation_error' => __('Please Fill all the fields', self::BASE_SHORT),
+          'Off' => __('Off', self::BASE_SHORT),
+          'On' => __('On', self::BASE_SHORT),
+          'tracking_sent' => __('Order tracking sent.', self::BASE_SHORT)
+        ));
     }
 
-    // BOX at order view start
+    // PLUGIN install-uninstall end
+    // META BOX at order view start
 
     public function adding_meta_boxes()
     {
@@ -260,7 +260,6 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
         endif;
       }
     }
-
 
     public function trafikito_woocomerce_shipment_email_order_box_callback($post)
     {
@@ -387,7 +386,6 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       return $tracking_url;
     }
 
-
     public function tracking_link($order_id)
     {
 
@@ -410,33 +408,16 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
 
     public function validate($order_id)
     {
-
-      if (get_post_meta($order_id, 'trafikito_shipment_link_tracking_provider_id', true) == ''
-        || get_post_meta($order_id, 'trafikito_shipment_link_tracking_number', true) == ''
-        || get_post_meta($order_id, 'trafikito_shipment_link_date_shipped', true) == '') {
+      if (get_post_meta($order_id, self::BASE_FULL . '_provider_id', true) == ''
+        || get_post_meta($order_id, self::BASE_FULL . '_tracking_number', true) == ''
+        || get_post_meta($order_id, self::BASE_FULL . '_timestamp_shipped', true) == ''
+        || get_post_meta($order_id, self::BASE_FULL . '_delivery_days', true) == ''
+        || get_post_meta($order_id, self::BASE_FULL . '_delivery_days_type', true) == ''
+      ) {
         return false;
       } else {
         return true;
       }
-
-    }
-
-
-    /**
-     * Enqueue scripts required by plugin
-     */
-    public function register_script()
-    {
-      wp_enqueue_script('jquery-ui-datepicker');
-      wp_enqueue_script('gb-functions', $this->url . 'js/functions.js', array('jquery'), false, true);
-      wp_enqueue_style('gb-style', $this->url . 'css/style.css', array());
-      wp_localize_script('gb-functions', 'gb',
-        array('ajaxurl' => admin_url('admin-ajax.php'),
-          'form_validation_error' => __('Please Fill all the fields and then submit the Form!', self::BASE_SHORT),
-          'Off' => __('Off', self::BASE_SHORT),
-          'On' => __('On', self::BASE_SHORT),
-          'tracking_sent' => __('Order tracking sent.', self::BASE_SHORT)
-        ));
     }
 
     /*
@@ -462,14 +443,9 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       die;
     }
 
-
-    /*
-    *
-    * Add "Shipping Email Tracking" tab in woocommerce
-    */
     public function add_settings_tab($settings_tabs)
     {
-      $settings_tabs[self::BASE_FULL] = __('Shipping Email Tracking', self::BASE_SHORT);
+      $settings_tabs[self::BASE_FULL] = __('Shipping tracking email', self::BASE_SHORT);
       return $settings_tabs;
     }
 
@@ -480,7 +456,7 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
     * Function Adding new Provider to the existing provider list
     */
 
-    public function add_shipping_provider()
+    public function add_provider()
     {
       $shipping_provider = sanitize_text_field($_POST["shipping_provider"]);
       $status = sanitize_text_field($_POST["status"]);
@@ -506,13 +482,12 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
         $key = 0;
       endif;
 
-      $estimated_delivery = $estimated_delivery_days . ' ' . $calendar_work_days;
-
       $this->providers[$key]['id'] = $last_provider_id + 1;
       $this->providers[$key]['provider'] = $shipping_provider;
       $this->providers[$key]['status'] = $status;
       $this->providers[$key]['tracking_url'] = $tracking_url;
-      $this->providers[$key]['estimated_delivery'] = $estimated_delivery;
+      $this->providers[$key]['estimated_delivery_days'] = $estimated_delivery_days;
+      $this->providers[$key]['estimated_delivery_days_type'] = $calendar_work_days;
       $this->providers[$key]['tracking_number'] = '';
       $this->providers[$key]['new_order_status'] = $new_order_status;
 
@@ -526,7 +501,7 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
     *
     * delete shipping provider ajax call function
     */
-    public function delete_shipping_provider()
+    public function delete_provider()
     {
       $key = sanitize_text_field($_POST["key"]);
       unset($this->providers[$key]);
