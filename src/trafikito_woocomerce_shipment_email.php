@@ -227,13 +227,11 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
         $tracking_url = str_replace('{{TRACKING_NUMBER}}', $tracking_url);
         $date_shipped = $provider['delivery_days'];
 
-//        $email_vars = array($provider_name, $tracking_url, $timestamp_shipped, $trafikito_shipment_link_ship_date . ' ' . $trafikito_shipment_link_ship_day);
-
         // $order->update_status( $this->order_status );
-        $body = 'Please find your Order shipment details below, you can click on the Tracking Number to track your order.';
-        $body .= '<h3>Shipping Tracking</h3>';
+        $email_html = 'Please find your Order shipment details below, you can click on the Tracking Number to track your order.';
+        $email_html .= '<h3>Shipping Tracking</h3>';
 
-        $body .= '<table cellpadding="20">
+        $email_html .= '<table cellpadding="20">
                   <tr style="background-color:#c6c6c6;">
                     <th>Provider Name</th>
                     <th>Tracking Number</th>
@@ -253,7 +251,7 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
         $to = $customer_email;
         $subject = get_bloginfo('name') . ' Order Shippment Tracking';
         $headers = array('Content-Type: text/html; charset=UTF-8', 'From: ' . get_bloginfo('name') . ' &lt;' . $from_email);
-        $success_true = wp_mail($to, $subject, $body, $headers);
+        $success_true = wp_mail($to, $subject, $email_html, $headers);
 
         if ($success_true):
 //          $note = __('Email with shipping tracking information was sent. ' . $formatted_track);
@@ -268,100 +266,113 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
     {
       wp_nonce_field('trafikito_shipment_link_shipment_tracking_data', 'trafikito_shipment_link_shipment_tracking_nonce');
 
-      $provider_id = get_post_meta($post->ID, 'trafikito_shipment_link_tracking_provider_id', true);
-      $tracking_number = get_post_meta($post->ID, 'trafikito_shipment_link_tracking_number', true);
-      $date_shipped = get_post_meta($post->ID, 'trafikito_shipment_link_date_shipped', true);
-      $trafikito_shipment_link_ship_date = get_post_meta($post->ID, 'trafikito_shipment_link_ship_date', true);
-      $trafikito_shipment_link_ship_day = get_post_meta($post->ID, 'trafikito_shipment_link_ship_day', true); ?>
+      $provider_id = get_post_meta($post->ID, self::BASE_FULL . '_provider_id', true);
+      $tracking_number = get_post_meta($post->ID, self::BASE_FULL . '_tracking_number', true);
+      $timestamp_shipped = get_post_meta($post->ID, self::BASE_FULL . '_timestamp_shipped', true);
+      $delivery_days = get_post_meta($post->ID, self::BASE_FULL . '_delivery_days', true);
+      $delivery_days_type = get_post_meta($post->ID, self::BASE_FULL . '_delivery_days_type', true);
 
-        <p>
+      $date_shipped = ''; // todo convert timestamp to $date_shipped YYYY-MM-DD
+      ?>
+        <div id="<?= self::BASE_FULL ?>_metabox">
+            <p>
+            <div>$provider_id:: <?= $provider_id ?></div>
+            <div>$tracking_number:: <?= $tracking_number ?></div>
+            <div>$timestamp_shipped:: <?= $timestamp_shipped ?></div>
+            <div>$delivery_days:: <?= $delivery_days ?></div>
+            <div>$delivery_days_type:: <?= $delivery_days_type ?></div>
+
             <label
-                    for="trafikito_shipment_link_tracking_provider_id"
+                    for="<?= self::BASE_FULL . '_provider_id' ?>"
                     class="input-text"
             >
                 <strong><?= _e('Provider', self::BASE_SHORT) ?>:</strong>
             </label>
-            <br>
             <select
-                    name="trafikito_shipment_link_tracking_provider_id"
-                    id="trafikito_shipment_link_tracking_provider_id"
+                    name="<?= self::BASE_FULL . '_provider_id' ?>"
+                    id="<?= self::BASE_FULL . '_provider_id' ?>"
                     class="gb-field"
             >
               <?php if (!empty($this->providers)) :
                 foreach ($this->providers as $key => $provider) : ?>
-                  <?php if ($provider['status'] != 'off'): ?>
-                        <option value="<?php echo $provider['id'] ?>" <?php selected(isset($provider_id) ? $provider_id : '', $provider['id']); ?>><?php echo $provider['provider'] ?></option>
+                  <?php if ($provider['status'] !== 'off'): ?>
+                        <option value="<?= $provider['id'] ?>" <?php selected(isset($provider_id) ? $provider_id : '', $provider['id']); ?>>
+                          <?= $provider['provider'] ?>
+                        </option>
                   <?php endif; ?>
                 <?php endforeach;
               endif ?>
             </select>
-        </p>
+            </p>
 
-        <p class="trafikito_shipment_link_hidden_fields">
-            <label for="trafikito_shipment_link_tracking_number">
-                <strong><?php _e('Tracking number', self::BASE_SHORT) ?>:</strong>
+            <p class="trafikito_shipment_link_hidden_fields">
+                <label for="<?= self::BASE_FULL . '_tracking_number' ?>">
+                    <strong><?php _e('Tracking number', self::BASE_SHORT) ?>:</strong>
+                </label>
+                <input
+                        type="text"
+                        class="gb-field"
+                        name="<?= self::BASE_FULL . '_tracking_number' ?>"
+                        id="<?= self::BASE_FULL . '_tracking_number' ?>"
+                        value="<?php if (isset($tracking_number)) echo $tracking_number; ?>"
+                />
+            </p>
+            <p class="tracking-link"><?php echo $this->tracking_link($post->ID); ?></p>
+
+            <label for="<?= self::BASE_FULL . '_timestamp_shipped' ?>" class="input-text">
+                <strong><?= _e('When shipped', self::BASE_SHORT) ?>:</strong>
             </label>
-            <input
-                    type="text"
-                    class="gb-field"
-                    name="trafikito_shipment_link_tracking_number"
-                    id="trafikito_shipment_link_tracking_number"
-                    value="<?php if (isset($tracking_number)) echo $tracking_number; ?>"
-            />
-        </p>
-        <p class="tracking-link"><?php echo $this->tracking_link($post->ID); ?></p>
 
-        <p class="trafikito_shipment_link_hidden_fields">
-            <input
-                    type="text"
-                    class="gb-field"
-                    autocomplete="off"
-                    placeholder="When shipped"
-                    name="trafikito_shipment_link_date_shipped"
-                    id="trafikito_shipment_link_date_shipped"
-                    value="<?php echo($date_shipped ? $date_shipped : '') ?>"
-            />
-        </p>
+            <p class="trafikito_shipment_link_hidden_fields">
+                <input
+                        type="text"
+                        class="gb-field"
+                        autocomplete="off"
+                        placeholder="<?= _e('When shipped', self::BASE_SHORT) ?>"
+                        name="<?= self::BASE_FULL . '_timestamp_shipped' ?>"
+                        id="<?= self::BASE_FULL . '_timestamp_shipped' ?>"
+                        value="<?php echo($date_shipped ? $date_shipped : date('Y-m-d')) ?>"
+                />
+            </p>
 
-        <p>
+            <p class="trafikito_shipment_link_hidden_fields">
+                <label for="<?= self::BASE_FULL . '_delivery_days' ?>">
+                    <strong><?php _e('Estimated Delivery', self::BASE_SHORT) ?>:</strong>
+                </label>
+                <br/>
+                <select name="<?= self::BASE_FULL . '_delivery_days' ?>" id="<?= self::BASE_FULL . '_delivery_days' ?>">
+                  <?php for ($i = 1; $i <= 100; $i++): ?>
+                      <option value="<?= $i ?>" <?php selected($delivery_days, $i); ?>>
+                        <?= $i; ?>
+                      </option>
+                  <?php endfor; ?>
+                </select>
+                <select name="<?= self::BASE_FULL . '_delivery_days_type' ?>" id="calender-work-days">
+                    <option value="calendar_days" <?php selected($delivery_days_type, 'calendar_days'); ?>>
+                      <?php _e('Calendar days', self::BASE_SHORT); ?>
+                    </option>
+                    <option value="workdays" <?php selected($delivery_days_type, 'workdays'); ?>>
+                      <?php _e('Workdays', self::BASE_SHORT); ?>
+                    </option>
+                </select>
+            </p>
 
-        <p class="trafikito_shipment_link_hidden_fields">
-            <label for="trafikito_shipment_link_est_delivery">
-                <strong><?php _e('Estimated Delivery', self::BASE_SHORT) ?>:</strong>
-            </label>
-            <br/>
-            <select name="trafikito_shipment_link_ship_date" id="trafikito_shipment_link_ship_date">
-              <?php for ($i = 1; $i <= 30; $i++): ?>
-                  <option value="<?php echo $i; ?>" <?php selected($trafikito_shipment_link_ship_date, $i); ?>>
-                    <?php echo $i; ?>
-                  </option>
-              <?php endfor; ?>
-            </select>
-            <select name="trafikito_shipment_link_ship_day" id="calender-work-days">
-                <option value="calendar_days" <?php selected($trafikito_shipment_link_ship_day, 'calendar_days'); ?>>
-                  <?php _e('Calendar days', self::BASE_SHORT); ?>
-                </option>
-                <option value="workdays" <?php selected($trafikito_shipment_link_ship_day, 'workdays'); ?>>
-                  <?php _e('Workdays', self::BASE_SHORT); ?>
-                </option>
-            </select>
-        </p>
+            <input type="hidden" class="gb-field" name="<?= self::BASE_FULL . '_ID' ?>"
+                   value="<?php echo $post->ID ?>"/>
 
-        <input type="hidden" class="gb-field" name="trafikito_shipment_link_order_ID" value="<?php echo $post->ID ?>"/>
-
-        <div class="control-actions ">
-            <a class="metabox-shipping-track" href="<?php echo $this->manage_providers; ?>">
-              <?php _e('Settings', self::BASE_SHORT) ?>
-            </a>
-            <div class="alignright trafikito_shipment_link_hidden_fields">
-                <button class="button button-primary right " id="save_send">
-                  <?php echo($this->validate($post->ID) ? __('Save', self::BASE_SHORT) : __('Save and Send', self::BASE_SHORT)); ?>
-                </button>
-                <span class="spinner"></span>
+            <div class="control-actions">
+                <a class="metabox-shipping-track" href="<?php echo $this->manage_providers; ?>">
+                  <?php _e('Settings', self::BASE_SHORT) ?>
+                </a>
+                <div class="alignright trafikito_shipment_link_hidden_fields">
+                    <button class="button button-primary right " id="save_send">
+                      <?php echo($this->validate($post->ID) ? __('Save', self::BASE_SHORT) : __('Save and Send', self::BASE_SHORT)); ?>
+                    </button>
+                    <span class="spinner"></span>
+                </div>
+                <br class="clear">
             </div>
-            <br class="clear">
         </div>
-
       <?php
     }
 
@@ -759,10 +770,6 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       <?php
     }
 
-    /*
-    *
-    * Adds new provider section HTML
-    */
     public function add_new_provider()
     {
       ?>
@@ -894,18 +901,14 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       <?php
     }
 
-
     public function edit_provider_section_url($provider_id)
     {
       return $this->edit_provider . '&id=' . $provider_id;
     }
 
-
     public function hide_save_changes()
     {
-      echo '<style> button.button-primary.woocommerce-save-button {
-    display: none;
-    } </style>';
+      echo '<style> button.button-primary.woocommerce-save-button {display: none;} </style>';
     }
 
 
@@ -916,16 +919,15 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
     public function settings_tab()
     {
       $this->hide_save_changes();
-      if (isset($_GET['section']) && $_GET['section'] == 'add_new_provider'):
+      if (isset($_GET['section']) && $_GET['section'] == 'add_new_provider') {
         $this->add_new_provider();
-
-      elseif (isset($_GET['id']) && $_GET['section'] == 'edit_provider'):
+      } elseif (isset($_GET['id']) && $_GET['section'] == 'edit_provider') {
         $this->edit_shipping_provider();
-
-      else:?>
+      } else {
+        ?>
           <div class="wrap gb-shippment-block">
               <h1 class="wp-heading-inline">
-                <?php _e('Shipment Tracking Settings', self::BASE_SHORT); ?>
+                <?php _e('Shipment providers', self::BASE_SHORT); ?>
               </h1>
               <a class="action-button"
                  href="<?php echo $this->add_new_provider_path; ?>"><?php _e('Add', self::BASE_SHORT); ?>
@@ -961,31 +963,29 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
                       </th>
                   </tr>
                   <?php
-                  if (!empty($this->providers)):
+                  if (!empty($this->providers)) {
                     $sorted_providers = array_reverse($this->providers, true);
 
-                    foreach ($sorted_providers as $key => $provider):
+                    foreach ($sorted_providers as $key => $provider) {
                       $status = '';
 
-                      if ($provider['status'] == 'on'):
+                      if ($provider['status'] == 'on') {
                         $status = '<span class="on-green">' . __('On', self::BASE_SHORT) . '</span>';
-                      else:
+                      } else {
                         $status = '<span class="off-red">' . __('Off', self::BASE_SHORT) . '</span>';
-                      endif;
+                      }
 
-                      if (!empty($provider['tracking_url']) && strpos($provider['tracking_url'], 'TRACKING_NUMBER') !== false):
+                      if (!empty($provider['tracking_url']) && strpos($provider['tracking_url'], 'TRACKING_NUMBER') !== false) {
                         $tracking = 'Yes';
-                      else:
+                      } else {
                         $tracking = 'No';
-                      endif;
-
+                      }
 
                       $est_separate = explode(' ', $provider['estimated_delivery']);
                       $formatted_est = ucfirst(str_replace("_", ' ', $est_separate[1]));
 
                       $formatted_nostatus = ucfirst(str_replace("_", ' ', $provider['new_order_status']));
                       ?>
-
                         <tr class="tr_key_<?php echo $key; ?>">
                             <td>
                                 <a href="<?php echo $this->edit_provider_section_url($provider['id']); ?>">
@@ -1009,19 +1009,18 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
                                 <a class="action-button action-delete" href="javascript:void()">
                                   <?php _e('Delete', self::BASE_SHORT); ?>
                                 </a>
-                                <span class="spinner delete-spinner">
-                    </span>
+                                <span class="spinner delete-spinner"></span>
                             </td>
                         </tr>
-                    <?php
-                    endforeach;
-                  endif;
+                      <?php
+                    }
+                  }
                   ?>
                   </tbody>
               </table>
           </div>
-      <?php
-      endif;
+        <?php
+      }
     }
   }
 
