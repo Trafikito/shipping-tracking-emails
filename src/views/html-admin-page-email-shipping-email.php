@@ -47,14 +47,15 @@ if (!defined('ABSPATH')) {
       <button
           type="submit"
           name="save"
-          class="button button-primary"
+          class="<?php echo $baseShort ?>_settings_btn button button-primary"
           id="<?php echo $baseShort ?>_providers_save"
           value="<?php esc_attr_e('Save providers', $baseShort); ?>"
       >
         <?php esc_html_e('Save providers', $baseShort); ?>
       </button>
       <span style="margin: 6px;"></span>
-      <a class="button button-secondary" href="#" id="<?php echo $baseShort ?>_provider_add">
+      <a class="<?php echo $baseShort ?>_settings_btn button button-secondary" href="#"
+         id="<?php echo $baseShort ?>_provider_add">
         <?php esc_html_e('Add provider', $baseShort); ?>
       </a>
     </td>
@@ -72,7 +73,7 @@ if (!defined('ABSPATH')) {
         <option value="off">Off</option>
       </select>
     </td>
-    <td><input type="text" name="provider" id="{{provider_id}}_provider" name="{{provider_id}}_provider"></td>
+    <td><input type="text" id="{{provider_id}}_provider" name="{{provider_id}}_provider"></td>
     <td>
       <input
           data-id="{{provider_id}}"

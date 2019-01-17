@@ -14,6 +14,21 @@
 
   let maxCurrentId = 0;
 
+  let otherEnabledButtons = null;
+  $('input, select').live('focus', () => {
+    otherEnabledButtons = $('#mainform').find('button:enabled').not(`.${BASE_SHORT}_settings_btn`);
+    otherEnabledButtons && otherEnabledButtons.attr('disabled', true);
+  }).live('blur', () => {
+    otherEnabledButtons && otherEnabledButtons.attr('disabled', false);
+  });
+
+  $(`.${BASE_SHORT}_providers_rows`).children().live('keyup', (e) => {
+    if (e.key === 'Enter') {
+      e.stopImmediatePropagation();
+      btn_saveProviders.trigger('click');
+    }
+  });
+
   // print all current rows && set maxCurrentId
 
   if (window.twse__settings.providers && window.twse__settings.providers.length > 0) {
