@@ -4,7 +4,7 @@
 *
 * Description: WooCommerce plugin to send emails with shipping tracking information.
 *
-* Author: <a href="https://trafikito.com/?utm_source=wp_plugin&utm_medium=author&utm_campaign=shipping_email">Trafikito.com</a> - get free notifications when your server is going out of resources. <a href="https://trafikito.com/?utm_source=wp_plugin&utm_medium=author&utm_campaign=shipping_email">Install now</a> for free.
+* Author: <a href="https://trafikito.com/?utm_source=wp_shipping_track_plugin&utm_medium=author&utm_campaign=desc_brand">Trafikito.com</a> - get free notifications when your server is going out of resources. <a href="https://trafikito.com/?utm_source=wp_shipping_track_plugin&utm_medium=author&utm_campaign=desc_install">Install now</a> for free.
 *
 * Text Domain: trafikito_woocomerce_shipment_email_
 */
@@ -21,19 +21,11 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
   {
     const VERSION = '1.1';
     const BASE_FULL = 'trafikito_woocomerce_shipment_email';
+    // plugin main file: self::BASE_FULL/self::BASE_FULL.php
     const BASE_SHORT = 'twse_';
     private static $instance;
-    /**
-     * URL of plugin directory
-     *
-     * @var string
-     */
+
     protected $url = '';
-    /**
-     * Path of plugin directory
-     *
-     * @var string
-     */
     protected $path = '';
     protected $basename = '';
     public $providers = null;
@@ -41,9 +33,14 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
 
     public function __construct()
     {
+
       $this->basename = dirname(plugin_basename(__FILE__));
       $this->url = plugin_dir_url(__FILE__);
       $this->path = plugin_dir_path(__FILE__);
+
+      // basename: trafikito_woocomerce_shipment_email
+      // url: http://mamis.local/wp-content/plugins/trafikito_woocomerce_shipment_email/
+      // path: /var/www/mamis.lt/wp-content/plugins/trafikito_woocomerce_shipment_email/
 
 //      $this->add_new_provider_path = admin_url('admin.php?page=wc-settings&tab=' . self::BASE_FULL . '&section=add_new_provider');
 //      $this->edit_provider = admin_url('admin.php?page=wc-settings&tab=' . self::BASE_FULL . '&section=edit_provider');
@@ -75,9 +72,16 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
 
     public function add_hooks()
     {
+      if (!function_exists('WC')) {
+        add_action('admin_notices', array($this, 'admin_notice_error'));
+        return;
+      }
+
+      add_filter('plugin_action_links_' . self::BASE_FULL . '/' . self::BASE_FULL . '.php', array($this, 'plugin_action_links'), 10, 2);
       add_action('add_meta_boxes', array($this, 'adding_meta_boxes'), 10, 2);
       add_action('save_post', array($this, 'save_meta_boxes'));
-      add_action('admin_enqueue_scripts', array($this, 'register_script'));
+
+      add_action('admin_enqueue_scripts', array($this, 'register_scripts'));
 //      add_action('wp_ajax_' . self::BASE_FULL . '_send_tracking', array($this, 'send_tracking'));
 //      add_action('wp_ajax_' . self::BASE_FULL . '_add_provider', array($this, 'add_provider'));
 //      add_action('wp_ajax_' . self::BASE_FULL . '_validate_provider_name', array($this, 'validate_provider_name'));
@@ -88,16 +92,21 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
 
       add_filter('woocommerce_get_sections_email', array($this, 'settings_section'));
       add_action('woocommerce_settings_tabs_email', array($this, 'settings_tab'));
-
-      if (!function_exists('WC')) {
-        add_action('admin_notices', array($this, 'admin_notice_error'));
-      }
     }
 
     public function settings_section($settings)
     {
       $settings['shipping_tracking_email'] = __('Shipping tracking', self::BASE_SHORT);
       return $settings;
+    }
+
+    public function plugin_action_links($links)
+    {
+      $mylinks = array(
+        '<a href="' . admin_url('admin.php?page=wc-settings&tab=email&section=shipping_tracking_email') . '">Settings</a>',
+        '<a target="_blank" href="https://trafikito.com/?utm_source=wp_shipping_track_plugin&utm_medium=author&utm_campaign=action_link">Trafikito</a>',
+      );
+      return array_merge($links, $mylinks);
     }
 
     // PLUGIN install-uninstall start
@@ -113,7 +122,7 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
             'tracking_url' => 'http://www.dhl.com/en/express/tracking.html?AWB={{TRACKING_NUMBER}}&brand=DHL',
             'estimated_delivery_days' => 5,
             'estimated_delivery_days_type' => 'workdays',
-            'order_status_after_email' => 'completed'
+            'order_status_after_email' => 'wc-completed'
           ),
         );
         add_option(self::BASE_FULL . '_providers', $list);
@@ -131,10 +140,10 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       delete_option(self::BASE_FULL . '_providers');
     }
 
-    public function register_script()
+    public function register_scripts()
     {
       wp_enqueue_script('jquery-ui-datepicker');
-      wp_enqueue_script(self::BASE_SHORT . '-settings', $this->url . 'js/settings.js', array('jquery'), false, true);
+      wp_enqueue_script(self::BASE_SHORT . '-settings', $this->url . 'js/settings.js', array('jquery'), rand(0, 99999), true);
 //      wp_enqueue_style(self::BASE_SHORT . '-style', $this->url . 'css/style.css', array());
       wp_localize_script(
         self::BASE_SHORT . '-settings',
