@@ -22,7 +22,6 @@ if (!defined('ABSPATH')) {
   <tr>
     <th>
       <strong><?php echo __("Status", $baseShort); ?></strong>
-      <?php echo wc_help_tip(__('At order edit view only active providers will be visible.', $baseShort)); ?>
     </th>
     <th><strong><?php echo __("Provider", $baseShort); ?></strong></th>
     <th>
@@ -34,11 +33,12 @@ if (!defined('ABSPATH')) {
       <strong><?php echo __("New order status", $baseShort); ?></strong>
       <?php echo wc_help_tip(__('New order status after sending email with shipping information.', $baseShort)); ?>
     </th>
+    <th></th>
   </tr>
   </thead>
   <tfoot>
   <tr>
-    <td colspan="5">
+    <td colspan="6">
       <button
           type="submit"
           name="save"
@@ -60,14 +60,23 @@ if (!defined('ABSPATH')) {
 
 <script type="text/html" id="tmpl-<?php echo $baseShort ?>_providers_rows_blank">
   <tr>
-    <td colspan="5">
+    <td colspan="6">
       <p><?php esc_html_e('No providers have been created.', $baseShort); ?></p></td>
   </tr>
 </script>
 
 <script type="text/html" id="tmpl-<?php echo $baseShort ?>_providers_row_view">
-  <tr id="<?php echo $baseShort ?>_provider_{{provider_id}}_view">
-    <td>{{provider_status}}</td>
+  <tr id="<?php echo $baseShort ?>_provider_{{provider_id}}_view" class="<?php echo $baseShort ?>_providers_table_row">
+    <td>
+      <div>{{provider_status}}</div>
+      <div class="row-actions">
+        <a class="<?php echo $baseShort ?>_providers_table_row_edit" href="#">
+          <?php esc_html_e('Edit', $baseShort); ?>
+        </a> | <a class="<?php echo $baseShort ?>_providers_table_row_delete " href="#">
+          <?php esc_html_e('Remove', $baseShort); ?>
+        </a>
+      </div>
+    </td>
     <td>{{provider_name}}</td>
     <td>{{tracking_url}}</td>
     <td>{{estimated_delivery_days}} {{estimated_delivery_days_type}}</td>
@@ -108,63 +117,13 @@ if (!defined('ABSPATH')) {
         <?php endforeach; ?>
       </select>
     </td>
-  </tr>
-</script>
-
-
-<script type="text/html" id="SAMPLE_TODO_REMOVE______________________________________________REMOVE________THIS___">
-  <?php
-  foreach ($shipping_class_columns as $class => $heading) {
-    echo '<td class="' . esc_attr($class) . '">';
-    switch ($class) {
-      case 'wc-shipping-class-name':
-        ?>
-        <div class="view">
-          {{ data.name }}
-          <div class="row-actions">
-            <a class="wc-shipping-class-edit" href="#"><?php esc_html_e('Edit', 'woocommerce'); ?></a> | <a href="#"
-                                                                                                            class="wc-shipping-class-delete"><?php esc_html_e('Remove', 'woocommerce'); ?></a>
-          </div>
-        </div>
-        <div class="edit">
-          <input type="text" name="name[{{ data.term_id }}]" data-attribute="name" value="{{ data.name }}"
-                 placeholder="<?php esc_attr_e('Shipping class name', 'woocommerce'); ?>"/>
-          <div class="row-actions">
-            <a class="wc-shipping-class-cancel-edit"
-               href="#"><?php esc_html_e('Cancel changes', 'woocommerce'); ?></a>
-          </div>
-        </div>
-        <?php
-        break;
-      case 'wc-shipping-class-slug':
-        ?>
-        <div class="view">{{ data.slug }}</div>
-        <div class="edit"><input type="text" name="slug[{{ data.term_id }}]" data-attribute="slug"
-                                 value="{{ data.slug }}" placeholder="<?php esc_attr_e('Slug', 'woocommerce'); ?>"/>
-        </div>
-        <?php
-        break;
-      case 'wc-shipping-class-description':
-        ?>
-        <div class="view">{{ data.description }}</div>
-        <div class="edit"><input type="text" name="description[{{ data.term_id }}]" data-attribute="description"
-                                 value="{{ data.description }}"
-                                 placeholder="<?php esc_attr_e('Description for your reference', 'woocommerce'); ?>"/>
-        </div>
-        <?php
-        break;
-      case 'wc-shipping-class-count':
-        ?>
-        <a href="<?php echo esc_url(admin_url('edit.php?post_type=product&product_shipping_class=')); ?>{{data.slug}}">{{
-          data.count }}</a>
-        <?php
-        break;
-      default:
-        do_action('woocommerce_shipping_classes_column_' . $class);
-        break;
-    }
-    echo '</td>';
-  }
-  ?>
+    <td>
+      <div class="<?php echo $baseShort ?>_btn_cancel">
+        <a href="#" class="<?php echo $baseShort ?>_provider_remove">Cancel</a>
+      </div>
+      <div class="<?php echo $baseShort ?>_btn_remove">
+        <a href="#" class="<?php echo $baseShort ?>_provider_remove">Remove</a>
+      </div>
+    </td>
   </tr>
 </script>

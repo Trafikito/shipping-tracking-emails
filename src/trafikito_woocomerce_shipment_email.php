@@ -45,9 +45,9 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       $this->url = plugin_dir_url(__FILE__);
       $this->path = plugin_dir_path(__FILE__);
 
-      $this->add_new_provider_path = admin_url('admin.php?page=wc-settings&tab=' . self::BASE_FULL . '&section=add_new_provider');
-      $this->edit_provider = admin_url('admin.php?page=wc-settings&tab=' . self::BASE_FULL . '&section=edit_provider');
-      $this->manage_providers = admin_url('admin.php?page=wc-settings&tab=' . self::BASE_FULL);
+//      $this->add_new_provider_path = admin_url('admin.php?page=wc-settings&tab=' . self::BASE_FULL . '&section=add_new_provider');
+//      $this->edit_provider = admin_url('admin.php?page=wc-settings&tab=' . self::BASE_FULL . '&section=edit_provider');
+//      $this->manage_providers = admin_url('admin.php?page=wc-settings&tab=' . self::BASE_FULL);
 
       add_action('plugins_loaded', array($this, 'add_hooks'));
       load_plugin_textdomain(self::BASE_SHORT, false, $this->basename . '/languages/');
@@ -66,6 +66,7 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
 
     private function getProviders()
     {
+      // load only when needed. No need to load on each pageview.
       if ($this->providers == null) {
         $this->providers = get_option(self::BASE_FULL . '_providers');
       }
@@ -133,10 +134,13 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
     public function register_script()
     {
       wp_enqueue_script('jquery-ui-datepicker');
-      wp_enqueue_script(self::BASE_SHORT . '-functions', $this->url . 'js/functions.js', array('jquery'), false, true);
-      wp_enqueue_style(self::BASE_SHORT . '-style', $this->url . 'css/style.css', array());
-      wp_localize_script(self::BASE_SHORT . '-functions', self::BASE_SHORT,
-        array('ajaxurl' => admin_url('admin-ajax.php'),
+      wp_enqueue_script(self::BASE_SHORT . '-settings', $this->url . 'js/settings.js', array('jquery'), false, true);
+//      wp_enqueue_style(self::BASE_SHORT . '-style', $this->url . 'css/style.css', array());
+      wp_localize_script(
+        self::BASE_SHORT . '-settings',
+        self::BASE_SHORT,
+        array(
+          'ajaxurl' => admin_url('admin-ajax.php'),
           'form_validation_error' => __('Please Fill all the fields', self::BASE_SHORT),
           'Off' => __('Off', self::BASE_SHORT),
           'On' => __('On', self::BASE_SHORT),
