@@ -61,10 +61,10 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       return self::$instance;
     }
 
-    private function getProviders()
+    private function getProviders($refresh)
     {
       // load only when needed. No need to load on each pageview.
-      if ($this->providers == null) {
+      if ($this->providers == null || $refresh === true) {
         $this->providers = get_option(self::BASE_FULL . '_providers');
       }
       return $this->providers;
@@ -158,6 +158,83 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
     }
 
     // PLUGIN install-uninstall end
+
+    public function admin_notice_error()
+    {
+      $message = __('WooCommerce: email with shipment link requires WooCommerce to be activated', self::BASE_SHORT);
+      printf(
+        '
+        <div class="notice notice-warning">
+          <p><strong>%s</strong> <a href="./plugins.php">view plugins</a></p>
+        </div>
+     ',
+        $message);
+    }
+
+    private function show_settings_provider_edit()
+    {
+      echo 'edit one!';
+
+    }
+
+    private function show_settings_providers_table()
+    {
+      $providers = self::getProviders(true);
+      $baseShort = self::BASE_SHORT;
+      $orderStatuses = wc_get_order_statuses();
+      wp_nonce_field(self::BASE_SHORT . 'update_providers', self::BASE_SHORT . 'n');
+      include_once dirname(__FILE__) . '/views/html-admin-page-email-shipping-email.php';
+    }
+
+    public function settings_tab()
+    {
+      echo json_encode($_POST);
+
+      $nonce = self::BASE_SHORT . 'n';
+      if (isset($_POST[$nonce]) && wp_verify_nonce($_POST[$nonce], self::BASE_SHORT . 'update_providers')) {
+        // get all providers IDs
+        $providerIds = [];
+        $find = 'row__' . self::BASE_SHORT . '_provider_';
+        foreach ($_POST as $key => $value) {
+          if (strpos($key, $find) !== false) {
+            $providerId = str_replace($find, '', $key);
+            if (!in_array($providerId, $providerIds)) {
+              array_push($providerIds, $providerId);
+            }
+          }
+        }
+
+        // save all providers
+        foreach ($providerIds as $providerId) {
+          // todo build array of providers and save it to db
+          echo "<div> providerId >>>> $providerId</div>";
+        }
+      }
+
+      $this->show_settings_providers_table();
+    }
+
+
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //d
+
+
     // META BOX at order view start
 
     public function adding_meta_boxes()
@@ -556,29 +633,7 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       die();
     }
 
-
-    /**
-     * WooCommerce fallback notice.
-     *
-     * @return string
-     */
-    public function admin_notice_error()
-    {
-      $message = __('WooCommerce: email with shipment link requires WooCommerce to be activated', self::BASE_SHORT);
-      printf(
-        '
-        <div class="notice notice-warning">
-          <p><strong>%s</strong> <a href="./plugins.php">view plugins</a></p>
-        </div>
-     ',
-        $message);
-    }
-
-    /**
-     * AJAX handler
-     *
-     * Edit shippimg provider code
-     */
+    /*
     public function edit_shipping_provider()
     {
       ?>
@@ -768,280 +823,8 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       </div>
       <?php
     }
+    */
 
-    public function add_new_provider()
-    {
-      ?>
-      <div class="wrap gb-shippment-block add_new_provider_block">
-        <h1 class="wp-heading-inline">
-          <?php _e('Add New Provider', self::BASE_SHORT); ?>
-        </h1>
-        <div class="components-notice-list new-subscriber-success" style="display:none">
-          <div class="components-notice is-success is-dismissible">
-            <div class="components-notice__content">
-              <?php _e('Provider has been added successfully! ', self::BASE_SHORT); ?>
-              <a href="<?php echo $this->manage_providers; ?>"><?php _e('View all providers ', self::BASE_SHORT); ?>
-              </a>
-            </div>
-          </div>
-        </div>
-        <form action="" method="post" class="add-new-provider-form">
-          <table class="form-table-gb">
-            <tbody>
-            <tr class="form-field form-required">
-              <td scope="row">
-                <label for="user_login">
-                  <?php _e('Provider', self::BASE_SHORT); ?>
-                </label>
-                <br/>
-                <input name="shipping_provider" type="text" id="shipping-provider" value=""
-                       aria-required="true" autocapitalize="none" autocorrect="off" maxlength="80">
-                <p class="error-message-gb-plugin empty-provider">
-                  <?php _e('Shipping Provider cannot be empty!', self::BASE_SHORT); ?>
-                </p>
-                <p class="error-message-gb-plugin duplicate-error">
-                  <?php _e('Shipping Provider already Exist!', self::BASE_SHORT); ?>
-                </p>
-              </td>
-            </tr>
-            <tr class="form-field form-required">
-              <td scope="row">
-                <?php _e('Status', self::BASE_SHORT); ?>
-                <span class="state-switch" style="color:green;">
-                  <?php _e('On', self::BASE_SHORT); ?>
-                </span>
-                <br/>
-                <label class="switch">
-                  <input type="checkbox" name="status" value="on" id="status-toggle" class="checked"
-                         checked>
-                  <span class="slider">
-                  </span>
-                </label>
-              </td>
-            </tr>
-            <tr class="form-field">
-              <td scope="row">
-                <label for="shipping_tracking_url">
-                  <?php _e('Tracking Url(Add {{TRACKING_NUMBER}} and it will be replaced by submitted tracking number)', self::BASE_SHORT); ?>
-                </label> <br>
-                <i>
-                  <?php _e('DHL example http://dhl.com/en/express/tracking.html?AWB={{TRACKING_NUMBER}}&brand=DHL', self::BASE_SHORT); ?>
-                  <i><br/>
-                    <input type="text" type="text" id="shipping-tracking-url"
-                           name="shipping_tracking_url" value="" aria-required="true"
-                           autocapitalize="none" autocorrect="off" maxlength="80"/>
-                    <p class="tracking-num-notify">
-                      <?php _e('{{TRACKING_NUMBER}} is not used! Url will not contain tracking number and user will have to enter it manually.', self::BASE_SHORT); ?>
-                    </p>
-                    <p class="error-message-gb-plugin tracking_url_error">
-                      <?php _e('Field cannot be cannot be empty!', self::BASE_SHORT); ?>
-                    </p>
-              </td>
-            </tr>
-            <tr class="form-field">
-              <td scope="row">
-                <label for="days">
-                  <?php _e('Estimated Delivery', self::BASE_SHORT); ?>
-                </label><br/>
-                <select name="estimated_delivery_days">
-                  <?php for ($i = 1; $i <= 30; $i++): ?>
-                    <option value="<?php echo $i; ?>" <?php if (7 == $i) echo 'selected'; ?>>
-                      <?php echo $i; ?>
-                    </option>
-                  <?php endfor; ?>
-                </select>
-                <select name="calender_work_days" id="calender-work-days">
-                  <option value="calendar_days">
-                    <?php _e('Calendar days', self::BASE_SHORT); ?>
-                  </option>
-                  <option value="workdays" selected>
-                    <?php _e('Workdays', self::BASE_SHORT); ?>
-                  </option>
-                </select>
-                <p class="error-message-gb-plugin cal-error">
-                  <?php _e('Please select Calendar/Workdays', self::BASE_SHORT); ?>
-                </p>
-              </td>
-            </tr>
-            <tr class="form-field">
-              <td scope="row">
-                <label for="order_status">
-                  <?php _e('New order status after email is sent', self::BASE_SHORT); ?>
-                  <br>
-                  <select name="new_order_status" id="new-order-status">
-                    <option value="No change">*
-                      <?php _e('Do not change order status automatically', self::BASE_SHORT); ?>*
-                    </option>
-                    <?php
-                    $order_status = array(__('Pending payment', self::BASE_SHORT), __('Processing', self::BASE_SHORT), __('On hold', self::BASE_SHORT), __('Completed', self::BASE_SHORT), __('Cancelled', self::BASE_SHORT), __('Failed', self::BASE_SHORT)); ?>
-                    <?php
-                    foreach ($order_status as $status):
-                      $status_value = str_replace(' ', '_', strtolower($status));
-                      ?>
-                      <option value="<?php echo $status_value; ?>">
-                        <?php _e($status, self::BASE_SHORT); ?>
-                      </option>
-                    <?php endforeach; ?>
-                  </select>
-                </label>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <a href="javascript:void()" class="action-button add-shipping-provider">
-                  <?php _e('Save', self::BASE_SHORT); ?>
-                </a>
-              </td>
-            </tr>
-            </tbody>
-          </table>
-        </form>
-      </div>
-      <?php
-    }
-
-    public function edit_provider_section_url($provider_id)
-    {
-      return $this->edit_provider . '&id=' . $provider_id;
-    }
-
-
-    private function show_settings_provider_edit()
-    {
-      echo 'edit one!';
-
-    }
-
-    private function show_settings_providers_table()
-    {
-      $providers = self::getProviders();
-      $baseShort = self::BASE_SHORT;
-      $orderStatuses = wc_get_order_statuses();
-      include_once dirname(__FILE__) . '/views/html-admin-page-email-shipping-email.php';
-    }
-
-    /**
-     * Shipping Tracking Page Admin
-     * @uses self::get_settings()
-     */
-    public function settings_tab()
-    {
-      if ($_GET['section'] === 'shipping_tracking_email') {
-        if (isset($_GET['email_id'])) {
-          $this->show_settings_provider_edit();
-        } else {
-          $this->show_settings_providers_table();
-        }
-      }
-
-      return;
-
-      // hide save button
-      echo '<style> button.button-primary.woocommerce-save-button {display: none;} </style>';
-
-      if (isset($_GET['section']) && $_GET['section'] == 'add_new_provider') {
-        $this->add_new_provider();
-      } elseif (isset($_GET['id']) && $_GET['section'] == 'edit_provider') {
-        $this->edit_shipping_provider();
-      } else {
-        ?>
-        <div class="wrap gb-shippment-block">
-          <h1 class="wp-heading-inline">
-            <?php _e('Shipment providers', self::BASE_SHORT); ?>
-          </h1>
-          <a class="action-button"
-             href="<?php echo $this->add_new_provider_path; ?>"><?php _e('Add', self::BASE_SHORT); ?>
-          </a>
-          <div class="components-notice-list delete-success" style="display:none">
-            <div class="components-notice is-success is-dismissible">
-              <div class="components-notice__content">
-                <?php _e('Provider has been deleted successfully! ', self::BASE_SHORT); ?>
-                <a href="<?php echo $this->manage_providers; ?>"><?php _e('View all providers', self::BASE_SHORT); ?></a>
-              </div>
-            </div>
-          </div>
-          <table class="wp-list-table widefat fixed striped pages tabel-shipping-gb">
-            <tbody>
-            <tr valign="top" class="titledesc">
-              <th scope="row">
-                <?php _e('Provider', self::BASE_SHORT); ?>
-              </th>
-              <th scope="row">
-                <?php _e('Status', self::BASE_SHORT); ?>
-              </th>
-              <th scope="row">
-                <?php _e('Has Tracking Url?', self::BASE_SHORT); ?>
-              </th>
-              <th scope="row">
-                <?php _e('Est. Delivery', self::BASE_SHORT); ?>
-              </th>
-              <th scope="row">
-                <?php _e('New Order Status', self::BASE_SHORT); ?>
-              </th>
-              <th scope="row">
-                <?php _e('Actions', self::BASE_SHORT); ?>
-              </th>
-            </tr>
-            <?php
-            if (!empty($this->providers)) {
-              $sorted_providers = array_reverse($this->providers, true);
-
-              foreach ($sorted_providers as $key => $provider) {
-                $status = '';
-
-                if ($provider['status'] == 'on') {
-                  $status = '<span class="on-green">' . __('On', self::BASE_SHORT) . '</span>';
-                } else {
-                  $status = '<span class="off-red">' . __('Off', self::BASE_SHORT) . '</span>';
-                }
-
-                if (!empty($provider['tracking_url']) && strpos($provider['tracking_url'], 'TRACKING_NUMBER') !== false) {
-                  $tracking = 'Yes';
-                } else {
-                  $tracking = 'No';
-                }
-
-                $est_separate = explode(' ', $provider['estimated_delivery']);
-                $formatted_est = ucfirst(str_replace("_", ' ', $est_separate[1]));
-
-                $formatted_nostatus = ucfirst(str_replace("_", ' ', $provider['new_order_status']));
-                ?>
-                <tr class="tr_key_<?php echo $key; ?>">
-                  <td>
-                    <a href="<?php echo $this->edit_provider_section_url($provider['id']); ?>">
-                      <?php _e($provider['provider'], self::BASE_SHORT); ?>
-                    </a>
-                  </td>
-                  <td>
-                    <?php _e($status, self::BASE_SHORT); ?>
-                  </td>
-                  <td>
-                    <?php _e($tracking, self::BASE_SHORT); ?>
-                  </td>
-                  <td> <?php echo $est_separate[0]; ?>
-                    <?php _e($formatted_est, self::BASE_SHORT); ?>
-                  </td>
-                  <td>
-                    <?php _e($formatted_nostatus, self::BASE_SHORT); ?>
-                  </td>
-                  <td class="td-relative">
-                    <input type="hidden" class="list-key" value="<?php echo $key; ?>">
-                    <a class="action-button action-delete" href="javascript:void()">
-                      <?php _e('Delete', self::BASE_SHORT); ?>
-                    </a>
-                    <span class="spinner delete-spinner"></span>
-                  </td>
-                </tr>
-                <?php
-              }
-            }
-            ?>
-            </tbody>
-          </table>
-        </div>
-        <?php
-      }
-    }
   }
 
   Trafikito_woocomerce_shipment_email::get_instance();

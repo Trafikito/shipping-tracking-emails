@@ -66,6 +66,7 @@ if (!defined('ABSPATH')) {
 <script type="text/html" id="tmpl-<?php echo $baseShort ?>_providers_row_edit">
   <tr data-id="{{provider_id}}" id="{{provider_id}}_row" class="<?php echo $baseShort ?>_provider_edit">
     <td>
+      <input type="hidden" name="row__{{provider_id}}" value="{{provider_id}}">
       <select id="{{provider_id}}_status" name="{{provider_id}}_status">
         <option value="on">On</option>
         <option value="off">Off</option>
