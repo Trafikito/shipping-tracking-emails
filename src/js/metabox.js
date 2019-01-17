@@ -3,33 +3,33 @@
  *
  */
 (function (window, document, $) {
-  const BASE_FULL = 'trafikito_woocomerce_shipment_email';
-  const BASE_SHORT = 'twse_';
-
-  const input_provider = $(`#${BASE_FULL}_provider_id`);
-  const input_when_shipped = $(`#${BASE_FULL}_timestamp_shipped`);
-  const input_estimated_days = $(`#${BASE_FULL}_delivery_days`);
-  const input_estimated_days_type = $(`#${BASE_FULL}_delivery_days_type`);
-  input_provider.change((e) => {
-    const provider_id = e.target.value;
-    $.ajax({
-      type: 'POST',
-      url: window[BASE_SHORT].ajaxurl,
-      data: `provider_id=${provider_id}&action=${BASE_FULL}_get_info_by_id`,
-      success: (data) => {
-        // input_estimated_days.val(data.)
-        console.log(`#jwlekjf datA:  `, data);
-        // if (data['date'] !== '') {
-        //     $('#trafikito_shipment_link_ship_date').val(data['date']);
-        //     $('#calender-work-days').val(data['day']);
-        // }
-      },
-    });
-    // $('#trafikito_shipment_link_tracking_number').val('');
-    // $('#trafikito_shipment_link_date_shipped').val('');
-    // $('#side-sortables p, #side-sortables div').removeClass('trafikito_shipment_link_hidden_fields');
-
-  });
+  // const BASE_FULL = 'trafikito_woocomerce_shipment_email';
+  // const BASE_SHORT = 'twse_';
+  //
+  // const input_provider = $(`#${BASE_FULL}_provider_id`);
+  // const input_when_shipped = $(`#${BASE_FULL}_timestamp_shipped`);
+  // const input_estimated_days = $(`#${BASE_FULL}_delivery_days`);
+  // const input_estimated_days_type = $(`#${BASE_FULL}_delivery_days_type`);
+  // input_provider.change((e) => {
+  //   const provider_id = e.target.value;
+  //   $.ajax({
+  //     type: 'POST',
+  //     url: window[BASE_SHORT].ajaxurl,
+  //     data: `provider_id=${provider_id}&action=${BASE_FULL}_get_info_by_id`,
+  //     success: (data) => {
+  //       // input_estimated_days.val(data.)
+  //       console.log(`#jwlekjf datA:  `, data);
+  //       // if (data['date'] !== '') {
+  //       //     $('#trafikito_shipment_link_ship_date').val(data['date']);
+  //       //     $('#calender-work-days').val(data['day']);
+  //       // }
+  //     },
+  //   });
+  //   // $('#trafikito_shipment_link_tracking_number').val('');
+  //   // $('#trafikito_shipment_link_date_shipped').val('');
+  //   // $('#side-sortables p, #side-sortables div').removeClass('trafikito_shipment_link_hidden_fields');
+  //
+  // });
 
   // META BOX AND ORDER VIEW end
 
