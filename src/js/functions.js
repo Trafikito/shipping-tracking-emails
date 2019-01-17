@@ -8,25 +8,26 @@
     const BASE_SHORT = 'twse_';
 
     // META BOX AND ORDER VIEW start
+    console.log(`#jlfulirf twse_: `, twse_);
     const input_provider = $(`#${BASE_FULL}_provider_id`);
     const input_when_shipped = $(`#${BASE_FULL}_timestamp_shipped`);
     const input_estimated_days = $(`#${BASE_FULL}_delivery_days`);
     const input_estimated_days_type = $(`#${BASE_FULL}_delivery_days_type`);
-    console.log(`#jklef START!s `,);
     input_provider.change((e) => {
-        console.log(`#j3kleljkr e value: `, e.target.value);
-        // let pr_id = $('#trafikito_woocomerce_shipment_email_provider_id').val();
-        // $.ajax({
-        //     type: 'POST',
-        //     url: gb.ajaxurl,
-        //     data: 'pr_id=' + pr_id + '&action=trafikito_shipment_link_get_info_by_id',
-        //     success: function (data) {
-        //         if (data['date'] !== '') {
-        //             $('#trafikito_shipment_link_ship_date').val(data['date']);
-        //             $('#calender-work-days').val(data['day']);
-        //         }
-        //     },
-        // });
+        const provider_id = e.target.value;
+        $.ajax({
+            type: 'POST',
+            url: window[BASE_SHORT].ajaxurl,
+            data: `provider_id=${provider_id}&action=${BASE_FULL}_get_info_by_id`,
+            success: (data) => {
+                // input_estimated_days.val(data.)
+                console.log(`#jwlekjf datA:  `, data);
+                // if (data['date'] !== '') {
+                //     $('#trafikito_shipment_link_ship_date').val(data['date']);
+                //     $('#calender-work-days').val(data['day']);
+                // }
+            },
+        });
         // $('#trafikito_shipment_link_tracking_number').val('');
         // $('#trafikito_shipment_link_date_shipped').val('');
         // $('#side-sortables p, #side-sortables div').removeClass('trafikito_shipment_link_hidden_fields');
