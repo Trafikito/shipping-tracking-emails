@@ -48,6 +48,7 @@
       $(`#${BASE_SHORT}_provider_${provider.provider_id}_days`).val(provider.estimated_delivery_days);
       $(`#${BASE_SHORT}_provider_${provider.provider_id}_days_type`).val(provider.estimated_delivery_days_type);
       $(`#${BASE_SHORT}_provider_${provider.provider_id}_order_status`).val(provider.order_status_after_email);
+
       if (provider.tracking_url.indexOf('{{TRACKING_NUMBER}}') === -1) {
         $(`#${BASE_SHORT}_provider_${provider.provider_id}_url_help`).show();
       } else {

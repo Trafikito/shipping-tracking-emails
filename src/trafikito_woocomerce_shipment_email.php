@@ -87,8 +87,28 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
 //      add_action('wp_ajax_' . self::BASE_FULL . '_get_info_by_id', array($this, 'get_info_by_id'));
 //      add_action('wp_ajax_' . self::BASE_FULL . '_update_order_provider', array($this, 'update_order_provider'));
 
+
+//      do_action( 'admin_enqueue_scripts', string $hook_suffix )
+
+      add_action('admin_enqueue_scripts', array($this, 'register_script'));
+
+//      Notice: wp_enqueue_script was called incorrectly. Scripts and styles should not be registered or enqueued until the wp_enqueue_scripts, admin_enqueue_scripts, or login_enqueue_scripts hooks.
+//    Please see Debugging in WordPress for more information. (This message was added in version 3.3.0.) in /var/www/mamis.lt/wp-includes/functions.php on line 4231
+
       add_filter('woocommerce_get_sections_email', array($this, 'settings_section'));
       add_action('woocommerce_settings_tabs_email', array($this, 'settings_tab'));
+    }
+
+    public function register_script()
+    {
+
+      if (isset($_GET['section']) && $_GET['section'] === 'shipping_tracking_email' && isset($_GET['tab']) && $_GET['tab'] === 'email') {
+        wp_enqueue_script(self::BASE_SHORT . '-settings', $this->url . 'js/settings.js', array('jquery'), rand(0, 99999), true);
+      }
+      if (isset($_GET['post']) && isset($_GET['action']) && $_GET['action'] === 'edit') {
+        wp_enqueue_script('jquery-ui-datepicker');
+        wp_enqueue_script(self::BASE_SHORT . '-metabox', $this->url . 'js/metabox.js', array('jquery'), rand(0, 99999), true);
+      }
     }
 
     public function settings_section($settings)
@@ -137,16 +157,6 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       delete_option(self::BASE_FULL . '_providers');
     }
 
-    public function register_settings_scripts()
-    {
-      wp_enqueue_script(self::BASE_SHORT . '-settings', $this->url . 'js/settings.js', array('jquery'), rand(0, 99999), true);
-    }
-
-    public function register_metabox_scripts()
-    {
-      wp_enqueue_script('jquery-ui-datepicker');
-      wp_enqueue_script(self::BASE_SHORT . '-metabox', $this->url . 'js/metabox.js', array('jquery'), rand(0, 99999), true);
-    }
 
     // PLUGIN install-uninstall end
 
@@ -161,8 +171,6 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
 
     private function show_settings_providers_table()
     {
-      add_action('admin_enqueue_scripts', array($this, 'register_settings_scripts'));
-
       $providers = self::getProviders(true);
       $baseShort = self::BASE_SHORT;
       $orderStatuses = wc_get_order_statuses();
@@ -336,9 +344,6 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
 
     public function trafikito_woocomerce_shipment_email_order_view_metabox($post)
     {
-
-      add_action('admin_enqueue_scripts', array($this, 'register_metabox_scripts'));
-
       $baseShort = self::BASE_SHORT;
       $providers = $this->getProviders(false);
 
@@ -347,7 +352,7 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       $timestamp_shipped = get_post_meta($post->ID, self::BASE_FULL . '_timestamp_shipped', true);
       $delivery_days = get_post_meta($post->ID, self::BASE_FULL . '_delivery_days', true);
       $delivery_days_type = get_post_meta($post->ID, self::BASE_FULL . '_delivery_days_type', true);
-
+      $orderStatuses = wc_get_order_statuses();
 
       wp_nonce_field(self::BASE_SHORT . 'send', self::BASE_SHORT . 'n');
       include_once dirname(__FILE__) . '/views/html-metabox.php';

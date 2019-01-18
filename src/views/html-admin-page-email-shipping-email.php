@@ -117,7 +117,25 @@ if (!defined('ABSPATH')) {
     </td>
     <td>
       <div class="<?php echo $baseShort ?>_btn_remove">
-        <a data-id="{{provider_id}}" href="#" class="<?php echo $baseShort ?>_provider_remove">Remove</a>
+        <style>
+          .<?php echo $baseShort ?>_provider_remove {
+            color: #F44336;
+            line-height: 29px;
+          }
+
+          .<?php echo $baseShort ?>_provider_remove:hover {
+            color: #F44336;
+            text-decoration: underline;
+            cursor: pointer;
+          }
+        </style>
+        <a
+            data-id="{{provider_id}}"
+            href="#"
+            class="<?php echo $baseShort ?>_provider_remove"
+        >
+          Remove
+        </a>
       </div>
     </td>
   </tr>
