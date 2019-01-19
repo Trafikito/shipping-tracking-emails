@@ -1,9 +1,4 @@
 <?php
-/**
- * Shipping classes admin
- *
- * @package WooCommerce/Admin/Shipping
- */
 
 if (!defined('ABSPATH')) {
   exit;
@@ -40,7 +35,8 @@ $url_settings = admin_url('admin.php?page=wc-settings&tab=email&section=shipping
     </div>
     <select id="<?php echo $id_provider ?>" name="<?php echo $id_provider ?>" style="width: 100%;">
       <?php foreach ($providers as $provider): ?>
-        <option value="<?php echo $provider['provider_id'] ?>"><?php echo $provider['provider'] ?></option>
+        <option
+            value="<?php echo $provider['provider_id'] ?>"><?php echo __($provider['provider'], $baseShort) ?></option>
       <?php endforeach; ?>
     </select>
   </div>
@@ -49,7 +45,7 @@ $url_settings = admin_url('admin.php?page=wc-settings&tab=email&section=shipping
       style="font-weight: bold"
       for="<?php echo $id_tracking_number ?>"
   >
-    <?php echo __('Tracking number:', $baseShort) ?>
+    <?php echo __('Tracking number', $baseShort) ?>:
   </label>
   <input
       type="text"
@@ -73,7 +69,7 @@ $url_settings = admin_url('admin.php?page=wc-settings&tab=email&section=shipping
       href="#"
       id="<?php echo $baseShort ?>_test_url"
   >
-    test tracking URL
+    <?php echo __('Test tracking URL', $baseShort) ?>
   </a>
 
   <div style="margin: 12px 0">
