@@ -1,7 +1,3 @@
-/**
- * twse_
- *
- */
 (function (window, document, $) {
   $('.woocommerce-save-button').hide();
 

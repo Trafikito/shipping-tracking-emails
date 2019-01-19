@@ -1,9 +1,4 @@
 <?php
-/**
- * Shipping classes admin
- *
- * @package WooCommerce/Admin/Shipping
- */
 
 if (!defined('ABSPATH')) {
   exit;
@@ -69,8 +64,8 @@ if (!defined('ABSPATH')) {
     <td>
       <input type="hidden" name="row__{{provider_id}}" value="{{provider_id}}">
       <select id="{{provider_id}}_status" name="{{provider_id}}_status">
-        <option value="on">On</option>
-        <option value="off">Off</option>
+        <option value="on"><?php echo __('On', $baseShort) ?></option>
+        <option value="off"><?php echo __('Off', $baseShort) ?></option>
       </select>
     </td>
     <td><input type="text" id="{{provider_id}}_provider" name="{{provider_id}}_provider"></td>
@@ -83,9 +78,7 @@ if (!defined('ABSPATH')) {
           id="{{provider_id}}_url"
       >
       <p class="help" id="{{provider_id}}_url_help" style="max-width: 220px">
-        <?php
-        echo __('Use {{TRACKING_NUMBER}} as a placeholder for the tracking number', $baseShort)
-        ?>
+        <?php echo __('Use {{TRACKING_NUMBER}} as a placeholder for the tracking number', $baseShort) ?>
       </p>
     </td>
     <td>
