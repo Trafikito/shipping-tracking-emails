@@ -171,11 +171,13 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
 
     private function show_settings_providers_table()
     {
-      $providers = self::getProviders(true);
-      $baseShort = self::BASE_SHORT;
-      $orderStatuses = wc_get_order_statuses();
-      wp_nonce_field(self::BASE_SHORT . 'update_providers', self::BASE_SHORT . 'n');
-      include_once dirname(__FILE__) . '/views/html-admin-page-email-shipping-email.php';
+      if (isset($_GET['section']) && $_GET['section'] === 'shipping_tracking_email' && isset($_GET['tab']) && $_GET['tab'] === 'email') {
+        $providers = self::getProviders(true);
+        $baseShort = self::BASE_SHORT;
+        $orderStatuses = wc_get_order_statuses();
+        wp_nonce_field(self::BASE_SHORT . 'update_providers', self::BASE_SHORT . 'n');
+        include_once dirname(__FILE__) . '/views/html-admin-page-email-shipping-email.php';
+      }
     }
 
     public function settings_tab()
@@ -241,78 +243,64 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
     public function save_meta_boxes($post_id)
     {
 
+      if (
+        !isset($_POST[self::BASE_SHORT . '_provider'])
+        || !isset($_POST[self::BASE_SHORT . '_provider'])
+        || !isset($_POST[self::BASE_SHORT . '_tracking_number'])
+        || !isset($_POST[self::BASE_SHORT . '_shipped_at'])
+        || !isset($_POST[self::BASE_SHORT . '_estimated_days'])
+        || !isset($_POST[self::BASE_SHORT . '_estimated_days_type'])
+        || !isset($_POST[self::BASE_SHORT . '_order_status'])
+      ) {
+        return;
+      }
+
       if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
       if (!current_user_can('edit_post', $post_id)) {
         add_action('admin_notices', array($this, 'admin_notice_no_permission_to_edit'));
         return;
       };
 
-      $provider_id = $_POST[self::BASE_FULL . '_provider_id'];
-      $tracking_number = $_POST[self::BASE_FULL . '_tracking_number'];
-      $timestamp_shipped = $_POST[self::BASE_FULL . '_timestamp_shipped'];
-      $delivery_days = $_POST[self::BASE_FULL . '_delivery_days'];
-      $delivery_days_type = $_POST[self::BASE_FULL . '_delivery_days_type'];
+      $provider_id = sanitize_text_field($_POST[self::BASE_SHORT . '_provider']);
+      $tracking_number = sanitize_text_field($_POST[self::BASE_SHORT . '_tracking_number']);
+      $tracking_url = sanitize_text_field($_POST[self::BASE_SHORT . '_url']);
+      $shipped_at = sanitize_text_field($_POST[self::BASE_SHORT . '_shipped_at']);
+      $estimated_days = sanitize_text_field($_POST[self::BASE_SHORT . '_estimated_days']);
+      $estimated_days_type = sanitize_text_field($_POST[self::BASE_SHORT . '_estimated_days_type']);
+      $order_status = sanitize_text_field($_POST[self::BASE_SHORT . '_order_status']);
 
-      if (isset($provider_id)) {
-        update_post_meta($post_id, self::BASE_FULL . '_provider_id', sanitize_text_field($provider_id));
+      $all_settings = array(
+        'provider_id' => $provider_id,
+        'tracking_number' => $tracking_number,
+        'tracking_url' => $tracking_url,
+        'shipped_at' => $shipped_at,
+        'estimated_days' => $estimated_days,
+        'estimated_days_type' => $estimated_days_type,
+        'order_status' => $order_status,
+      );
+
+      $allProviders = $this->getProviders(false);
+      $provider_name = '';
+      foreach ($allProviders as $singleProvider) {
+        if ($singleProvider['provider_id'] == $provider_id) {
+          $provider_name = $singleProvider['provider'];
+        }
       }
 
-      if (isset($tracking_number)) {
-        update_post_meta($post_id, self::BASE_FULL . '_tracking_number', sanitize_text_field($tracking_number));
-      }
+      update_post_meta($post_id, self::BASE_FULL . '_data', json_encode($all_settings));
 
-      if (isset($timestamp_shipped)) {
-        update_post_meta($post_id, self::BASE_FULL . '_timestamp_shipped', sanitize_text_field($timestamp_shipped));
-      }
+      $order = new WC_Order($post_id);
 
-      if (isset($delivery_days)) {
-        update_post_meta($post_id, self::BASE_FULL . '_delivery_days', sanitize_text_field($delivery_days));
-      }
+      $order_data = $order->get_data();
+      $customer_email = $order_data['billing']['email'];
+      $from_email = apply_filters('woocommerce_email_from_address', get_option('woocommerce_email_from_address'), $this);
 
-      if (isset($delivery_days_type)) {
-        update_post_meta($post_id, self::BASE_FULL . '_delivery_days_type', sanitize_text_field($delivery_days_type));
-      }
+      $email_html = 'Please find your Order shipment details below, you can click on the Tracking Number to track your order.';
+      $email_html .= '<h3>Shipping Tracking</h3>';
 
-      $return['msg'] = '';
-      $errors = false;
+      $days_type = $estimated_days_type === 'calendar_days' ? __('Calendar days', self::BASE_SHORT) : __('Workdays', self::BASE_SHORT);
 
-      if ($provider_id === '') {
-        $errors = true;
-        $return['msg'] .= __('Please select a provider', self::BASE_SHORT) . '\n';
-      }
-      if ($tracking_number === '') {
-        $errors = true;
-        $return['msg'] .= __('Please add tracking number', self::BASE_SHORT) . '\n';
-      }
-      if ($timestamp_shipped === '') {
-        $errors = true;
-        $return['msg'] .= __('Please set date when it was shipped', self::BASE_SHORT) . '\n';
-      }
-      if ($delivery_days === '') {
-        $errors = true;
-        $return['msg'] .= __('Please set how long delivery will take', self::BASE_SHORT) . '\n';
-      }
-      if ($delivery_days_type === '') {
-        $errors = true;
-        $return['msg'] .= __('Please select type of days delivery will take', self::BASE_SHORT) . '\n';
-      }
-
-      if ($errors === false) {
-        $order = new WC_Order($post_id);
-        $order_data = $order->get_data();
-
-        $customer_email = $order_data['billing']['email'];
-        $provider = $this->providers[array_search($provider_id, array_column($this->providers, 'id'))];
-        $provider_name = $provider['provider'];
-        $tracking_url = '<a target="_blank" href="' . $provider['tracking_url'] . '">' . $tracking_number . '</a>';
-        $tracking_url = str_replace('{{TRACKING_NUMBER}}', $tracking_url);
-        $date_shipped = $provider['delivery_days'];
-
-        // $order->update_status( $this->order_status );
-        $email_html = 'Please find your Order shipment details below, you can click on the Tracking Number to track your order.';
-        $email_html .= '<h3>Shipping Tracking</h3>';
-
-        $email_html .= '<table cellpadding="20">
+      $email_html .= '<table cellpadding="20">
                   <tr style="background-color:#c6c6c6;">
                     <th>Provider Name</th>
                     <th>Tracking Number</th>
@@ -321,24 +309,26 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
                   </tr>
                   <tr style="background-color:#0000000f;">
                     <td style="border-bottom: 1px solid #eded;">' . __($provider_name, self::BASE_SHORT) . '</td>
-                    <td style="border-bottom: 1px solid #eded;">' . $tracking_url . '</td>
-                    <td style="border-bottom: 1px solid #eded;">' . $date_shipped . '</td>
+                    <td style="border-bottom: 1px solid #eded;"><a href="' . $tracking_url . '" target="_blank">' . $tracking_number . '</a></td>
+                    <td style="border-bottom: 1px solid #eded;">' . $shipped_at . '</td>
+                    <td style="border-bottom: 1px solid #eded;">' . $estimated_days . ' ' . $days_type . '</td>
                   </tr>
                   </table>
                   ';
-        $url = network_site_url('/');
-        $end_email = preg_replace('#^https?://#', '', $url);
-        $from_email = 'info@' . $end_email;
-        $to = $customer_email;
-        $subject = get_bloginfo('name') . ' Order Shippment Tracking';
-        $headers = array('Content-Type: text/html; charset=UTF-8', 'From: ' . get_bloginfo('name') . ' &lt;' . $from_email);
-        $success_true = wp_mail($to, $subject, $email_html, $headers);
+      $to = $customer_email;
+      $subject = get_bloginfo('name') . ': ' . __('Order Tracking', self::BASE_SHORT);
+      $headers = array('Content-Type: text/html; charset=UTF-8', 'From: ' . get_bloginfo('name') . ' &lt;' . $from_email);
 
-        if ($success_true):
-//          $note = __('Email with shipping tracking information was sent. ' . $formatted_track);
-//          $order->add_order_note($note);
-//          $order->save();
-        endif;
+      // todo switch to woocomerce email
+
+      $success_true = wp_mail($to, $subject, $email_html, $headers);
+
+      $note = __('Email with shipping tracking information was sent to %s', self::BASE_SHORT);
+      $order->add_order_note(sprintf($note, $to));
+      $order->save();
+
+      if ($order_status) {
+        $order->update_status($order_status);
       }
     }
 
@@ -349,9 +339,9 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
 
       $provider_id = get_post_meta($post->ID, self::BASE_FULL . '_provider_id', true);
       $tracking_number = get_post_meta($post->ID, self::BASE_FULL . '_tracking_number', true);
-      $timestamp_shipped = get_post_meta($post->ID, self::BASE_FULL . '_timestamp_shipped', true);
-      $delivery_days = get_post_meta($post->ID, self::BASE_FULL . '_delivery_days', true);
-      $delivery_days_type = get_post_meta($post->ID, self::BASE_FULL . '_delivery_days_type', true);
+      $shipped_at = get_post_meta($post->ID, self::BASE_FULL . '_shipped_at', true);
+      $estimated_days = get_post_meta($post->ID, self::BASE_FULL . '_estimated_days', true);
+      $estimated_days_type = get_post_meta($post->ID, self::BASE_FULL . '_estimated_days_type', true);
       $orderStatuses = wc_get_order_statuses();
 
       wp_nonce_field(self::BASE_SHORT . 'send', self::BASE_SHORT . 'n');
@@ -366,8 +356,8 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
               <div>$provider_id:: <?= $provider_id ?></div>
               <div>$tracking_number:: <?= $tracking_number ?></div>
               <div>$timestamp_shipped:: <?= $timestamp_shipped ?></div>
-              <div>$delivery_days:: <?= $delivery_days ?></div>
-              <div>$delivery_days_type:: <?= $delivery_days_type ?></div>
+              <div>$estimated_days:: <?= $estimated_days ?></div>
+              <div>$estimated_days_type:: <?= $estimated_days_type ?></div>
 
               <label
                   for="<?= self::BASE_FULL . '_provider_id' ?>"
@@ -427,22 +417,22 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
               </p>
 
               <p class="trafikito_shipment_link_hidden_fields">
-                <label for="<?= self::BASE_FULL . '_delivery_days' ?>">
+                <label for="<?= self::BASE_FULL . '_estimated_days' ?>">
                   <strong><?php _e('Estimated Delivery', self::BASE_SHORT) ?>:</strong>
                 </label>
                 <br/>
-                <select name="<?= self::BASE_FULL . '_delivery_days' ?>" id="<?= self::BASE_FULL . '_delivery_days' ?>">
+                <select name="<?= self::BASE_FULL . '_estimated_days' ?>" id="<?= self::BASE_FULL . '_estimated_days' ?>">
                   <?php for ($i = 1; $i <= 100; $i++): ?>
-                    <option value="<?= $i ?>" <?php selected($delivery_days, $i); ?>>
+                    <option value="<?= $i ?>" <?php selected($estimated_days, $i); ?>>
                       <?= $i; ?>
                     </option>
                   <?php endfor; ?>
                 </select>
-                <select name="<?= self::BASE_FULL . '_delivery_days_type' ?>" id="calender-work-days">
-                  <option value="calendar_days" <?php selected($delivery_days_type, 'calendar_days'); ?>>
+                <select name="<?= self::BASE_FULL . '_estimated_days_type' ?>" id="calender-work-days">
+                  <option value="calendar_days" <?php selected($estimated_days_type, 'calendar_days'); ?>>
                     <?php _e('Calendar days', self::BASE_SHORT); ?>
                   </option>
-                  <option value="workdays" <?php selected($delivery_days_type, 'workdays'); ?>>
+                  <option value="workdays" <?php selected($estimated_days_type, 'workdays'); ?>>
                     <?php _e('Workdays', self::BASE_SHORT); ?>
                   </option>
                 </select>
@@ -504,8 +494,8 @@ if (!class_exists('Trafikito_woocomerce_shipment_email')) {
       if (get_post_meta($order_id, self::BASE_FULL . '_provider_id', true) == ''
         || get_post_meta($order_id, self::BASE_FULL . '_tracking_number', true) == ''
         || get_post_meta($order_id, self::BASE_FULL . '_timestamp_shipped', true) == ''
-        || get_post_meta($order_id, self::BASE_FULL . '_delivery_days', true) == ''
-        || get_post_meta($order_id, self::BASE_FULL . '_delivery_days_type', true) == ''
+        || get_post_meta($order_id, self::BASE_FULL . '_estimated_days', true) == ''
+        || get_post_meta($order_id, self::BASE_FULL . '_estimated_days_type', true) == ''
       ) {
         return false;
       } else {

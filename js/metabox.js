@@ -11,6 +11,7 @@
   const input_shipped_at = $(`#${BASE_SHORT}_shipped_at`);
   const input_estimated_days = $(`#${BASE_SHORT}_estimated_days`);
   const input_estimated_days_type = $(`#${BASE_SHORT}_estimated_days_type`);
+  const input_url = $(`#${BASE_SHORT}_url`);
   const select_order_status = $(`#${BASE_SHORT}_order_status`);
   const link_test_url = $(`#${BASE_SHORT}_test_url`);
   const div_test_url_error = $(`#${BASE_SHORT}_test_url_error`);
@@ -60,6 +61,7 @@
       }
 
       link_test_url.attr('href', `${href}`);
+      input_url.val(href);
     }
   }
 
